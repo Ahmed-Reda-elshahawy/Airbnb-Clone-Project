@@ -36,6 +36,7 @@ namespace WebApplication1.Controllers
 
         #region Post Methods
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult> CreateBooking([FromBody] CreateBookingDTO dto)
         {
             if (dto == null)
@@ -64,7 +65,7 @@ namespace WebApplication1.Controllers
             return Ok(bookingsDTOs);
         }
         [HttpGet("me")]
-        [Authorize(Roles ="Guest")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<GetBookingDTO>>> GetUserBookings([FromQuery] Dictionary<string, string> queryParams)
         {
             var userId = _bookingRepository.GetCurrentUserId();
@@ -99,7 +100,7 @@ namespace WebApplication1.Controllers
 
         #region Cancel Bookings
         [HttpPost("{bookingId}/cancel")]
-        [Authorize(Roles ="Guest")]
+        [Authorize]
         public async Task<IActionResult> CancelBooking(Guid bookingId, CancelBookingDTO request)
         {
             try
@@ -126,7 +127,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost("{bookingId}/expired")]
-        [Authorize(Roles = "Guest")]
+        [Authorize]
         public async Task<IActionResult> CancelExpiredBookings(Guid bookingId)
         {
             try

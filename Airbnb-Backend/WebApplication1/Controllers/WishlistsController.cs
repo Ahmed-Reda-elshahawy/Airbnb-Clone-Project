@@ -136,8 +136,7 @@ namespace WebApplication1.Controllers
             {
                 throw new UnauthorizedAccessException("User not authenticated");
             }
-            Guid userId = currentUser.Id;
-            return userId;
+            return currentUser.Id;
         }
     }
 }

@@ -13,5 +13,6 @@ namespace WebApplication1.Interfaces
         Task MarkDatesUnavailable(Guid listingId, DateTime checkIn, DateTime checkOut);
         Task MarkDatesAvailable(Guid listingId, DateTime checkIn, DateTime checkOut);
         Task<List<Guid>> GetAvailableListingIds(DateTime start, DateTime end);
+        Task<bool> HasAvailabilityAsync(Guid listingId);
     }
 }

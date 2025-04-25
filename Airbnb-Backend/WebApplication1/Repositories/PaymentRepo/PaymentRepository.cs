@@ -34,12 +34,12 @@ namespace WebApplication1.Repositories.Payment
         {
             var createPaymentDto = _mapper.Map<CreatePaymentDTO>(source);
 
-            createPaymentDto.PaymentMethodId = 1;
             createPaymentDto.PaymentType = Enum.Parse<PaymentType>(source.intent.Metadata["paymentType"]);
             createPaymentDto.BookingId = Guid.Parse(source.intent.Metadata["bookingId"]);
             createPaymentDto.CurrencyId = int.Parse(source.intent.Metadata["currency"]);
             createPaymentDto.UserId = GetCurrentUserId();
-            createPaymentDto.FailureMessage = source.charge?.FailureMessage ?? source.charge?.Outcome?.SellerMessage ?? source.intent?.LastPaymentError?.Message;
+            createPaymentDto.FailureMessage = source.charge?.FailureMessage ?? source.intent?.LastPaymentError?.Message;
+            createPaymentDto.PaymentMethodId = int.Parse(source.intent.Metadata["paymentMethodId"]);
 
             var payment = _mapper.Map<Models.Payment>(createPaymentDto);
             _context.Payments.Add(payment);

@@ -193,10 +193,11 @@ namespace WebApplication1.Repositories.Payment
                 _ => throw new Exception("Invalid payment type")
             };
             var domain = "http://localhost:4200";
+            var method = await _context.PaymentMethods.FindAsync(request.PaymentMethodId) ?? throw new Exception("Invalid payment method");
 
             var options = new SessionCreateOptions
             {
-                PaymentMethodTypes = ["card"],
+                PaymentMethodTypes = method.stripeCode == "card" ? ["card"] : [method.stripeCode],
                 LineItems = [
                     new SessionLineItemOptions
                     {
@@ -218,6 +219,7 @@ namespace WebApplication1.Repositories.Payment
                 {
                     Metadata = new Dictionary<string, string>
                     {
+                        { "paymentMethodId", request.PaymentMethodId.ToString() },
                         { "paymentType", request.PaymentType.ToString() },
                         { "currency", user.CurrencyId.ToString() },
                         { "bookingId", bookingId.ToString() }
