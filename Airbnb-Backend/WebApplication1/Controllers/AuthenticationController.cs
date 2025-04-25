@@ -304,7 +304,7 @@ namespace YourNamespace.Controllers
 <p>If you didn't create an account, you can ignore this email.</p>
 ";
 
-            string resetLink = $"http://localhost:YOUR_PORT/reset-password?email={user.Email}&token={WebUtility.UrlEncode(token)}";
+            string resetLink = $"http://localhost:YOUR_PORT/reset-password?email={user.Email}&token={WebUtility.UrlEncode(resetToken)}";
             await emailsender.SendEmailAsync(
                 resetPasswordDto.Email, 
                 "Password Reset",
