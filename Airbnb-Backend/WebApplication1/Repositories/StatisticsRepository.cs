@@ -26,6 +26,7 @@ namespace WebApplication1.Repositories
             roleManager = _roleManager;
         }
         #endregion
+
         #region Booking Statistics
         public async Task<BookingPerMonthDTO> GetBookingsByPeriodAsync(string period, int? year)
         {
