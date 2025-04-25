@@ -1,0 +1,60 @@
+<div class="conversations-container">
+  <!-- Left sidebar with conversation list -->
+  <div class="conversations-list">
+    <h2>Messages</h2>
+    
+    <div *ngIf="loading" class="loading">Loading conversations...</div>
+    
+    <div *ngIf="error" class="error">{{ error }}</div>
+    
+    <div *ngIf="!loading && !error && conversations.length === 0" class="no-conversations">
+      No conversations yet
+    </div>
+    
+    <div *ngFor="let conversation of conversations" 
+         (click)="selectConversation(conversation)"
+         class="conversation-item"
+         [class.active]="selectedConversation?.id === conversation.id">
+      <div class="conversation-preview">
+        <div class="conversation-info">
+          <h3>{{ conversation.recipientName }}</h3>
+          <p>{{ getLastMessage(conversation) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right side chat area -->
+  <div class="chat-area" *ngIf="selectedConversation">
+    <div class="chat-header">
+      <h3>{{ selectedConversation.recipientName }}</h3>
+      <button (click)="closeConversation()" class="close-button">×</button>
+    </div>
+
+    <div id="messageContainer" class="messages-container">
+      <div *ngFor="let message of selectedConversation.messages" 
+           class="message"
+           [class.sent]="message.senderId === selectedConversation.userId"
+           [class.received]="message.senderId !== selectedConversation.userId">
+        <div class="message-content">
+          {{ message.content }}
+        </div>
+        <div class="message-time">
+          {{ message.createdAt | date:'short' }}
+        </div>
+      </div>
+    </div>
+
+    <div class="message-input">
+      <input type="text" 
+             [(ngModel)]="newMessage" 
+             (keyup.enter)="sendMessage()"
+             placeholder="Type a message...">
+      <button (click)="sendMessage()" [disabled]="!newMessage.trim()">Send</button>
+    </div>
+  </div>
+
+  <div class="no-chat-selected" *ngIf="!selectedConversation">
+    <p>Select a conversation to start chatting</p>
+  </div>
+</div>

@@ -1,0 +1,143 @@
+<div class="border rounded-lg shadow p-6">
+  <h2 class="text-xl font-semibold mb-4">Add dates for prices</h2>
+
+  <!-- Date Selection -->
+  <div class="grid grid-cols-2 border rounded-lg mb-4">
+    <div class="p-3 border-r">
+      <label for="check-in" class="block text-xs font-medium">CHECK-IN</label>
+      <input
+        type="date"
+        id="check-in"
+        [(ngModel)]="checkIn"
+        [min]="getMinDate()"
+        class="w-full outline-none text-gray-700 cursor-pointer">
+    </div>
+    <div class="p-3">
+      <label for="check-out" class="block text-xs font-medium">CHECKOUT</label>
+      <input
+        type="date"
+        id="check-out"
+        [(ngModel)]="checkOut"
+        [min]="getMinCheckoutDate()"
+        class="w-full outline-none text-gray-700 cursor-pointer">
+    </div>
+  </div>
+
+  <!-- Guests Selection -->
+  <div class="border rounded-lg p-3 mb-4">
+    <div
+      (click)="toggleGuestPopup()"
+      class="guest-trigger cursor-pointer">
+      <label class="block text-xs font-medium mb-2">GUESTS</label>
+      <div class="text-gray-700">{{ getGuestsText() }}</div>
+    </div>
+
+    <!-- Guests Popup -->
+    <div *ngIf="isGuestPopupOpen"
+         class="guest-popup absolute left-0 right-0 mt-2 bg-white border rounded-lg shadow-lg z-10 p-4">
+      <!-- Adults -->
+      <div class="flex items-center justify-between py-4 border-b">
+        <div>
+          <div class="font-medium">Adults</div>
+          <div class="text-sm text-gray-500">Age 13+</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            (click)="updateGuestCount('adults', -1)"
+            [disabled]="guests.adults <= 1"
+            class="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+            -
+          </button>
+          <span class="w-6 text-center">{{ guests.adults }}</span>
+          <button
+            (click)="updateGuestCount('adults', 1)"
+            [disabled]="getTotalGuests() >= maxGuests"
+            class="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+            +
+          </button>
+        </div>
+      </div>
+
+      <!-- Children -->
+      <div class="flex items-center justify-between py-4 border-b">
+        <div>
+          <div class="font-medium">Children</div>
+          <div class="text-sm text-gray-500">Ages 2–12</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            (click)="updateGuestCount('children', -1)"
+            [disabled]="guests.children <= 0"
+            class="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+            -
+          </button>
+          <span class="w-6 text-center">{{ guests.children }}</span>
+          <button
+            (click)="updateGuestCount('children', 1)"
+            [disabled]="getTotalGuests() >= maxGuests"
+            class="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+            +
+          </button>
+        </div>
+      </div>
+
+      <!-- Infants -->
+      <div class="flex items-center justify-between py-4 border-b">
+        <div>
+          <div class="font-medium">Infants</div>
+          <div class="text-sm text-gray-500">Under 2</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            (click)="updateGuestCount('infants', -1)"
+            [disabled]="guests.infants <= 0"
+            class="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+            -
+          </button>
+          <span class="w-6 text-center">{{ guests.infants }}</span>
+          <button
+            (click)="updateGuestCount('infants', 1)"
+            [disabled]="guests.infants >= 5"
+            class="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+            +
+          </button>
+        </div>
+      </div>
+
+      <!-- Pets -->
+      <div class="flex items-center justify-between py-4">
+        <div>
+          <div class="font-medium">Pets</div>
+          <div class="text-sm text-gray-500 underline cursor-pointer">Bringing a service animal?</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            (click)="updateGuestCount('pets', -1)"
+            [disabled]="guests.pets <= 0"
+            class="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+            -
+          </button>
+          <span class="w-6 text-center">{{ guests.pets }}</span>
+          <button
+            (click)="updateGuestCount('pets', 1)"
+            [disabled]="guests.pets >= 5"
+            class="w-8 h-8 rounded-full border flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+            +
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-4 text-sm text-gray-500">
+        This place has a maximum of {{ maxGuests }} guests, not including infants.
+      </div>
+    </div>
+  </div>
+
+  <!-- Check Availability Button -->
+  <button
+    (click)="checkAvailability()"
+    [disabled]="!checkIn || !checkOut"
+    class="w-full bg-rose-500 text-white rounded-lg py-3 font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-rose-600 transition-colors">
+    Check availability
+  </button>
+</div>

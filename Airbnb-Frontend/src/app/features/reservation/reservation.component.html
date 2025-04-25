@@ -1,0 +1,263 @@
+<div class="bg-gray-50 min-h-screen">
+  <!-- Navigation -->
+  <!-- <nav class="bg-white h-20 border-b border-gray-200 flex items-center px-4 md:px-20">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Airbnb_Logo_B%C3%A9lo.svg/2560px-Airbnb_Logo_B%C3%A9lo.svg.png"
+         alt="Airbnb Logo" class="w-30">
+  </nav> -->
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="mb-12 mt-6">
+      <h1 class="text-3xl font-semibold ">Confirm and pay</h1>
+    </div>
+    <div class="flex flex-col lg:flex-row gap-6">
+
+      <!-- Left Column - Payment (Now larger and on left) -->
+
+   <div class="lg:w-2/3">
+
+  <!-- <div class="flex justify-between pt-4 mt-4 border-t border-gray-200 font-semibold text-lg">
+  <span>Total (EGP)</span>
+  <span>EGP {{priceData.totalAmount}}</span>
+</div> -->
+
+
+
+          <div class="mb-8">
+
+
+           <!-- Pay Now Option -->
+<div class="mb-6 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+     (click)="selectOption('now')">
+  <div class="flex justify-between items-center">
+    <div>
+      <h2 class="font-medium">Pay {{ priceData.totalAmount}} now</h2>
+    </div>
+    <input type="radio" name="paymentOption"
+           [checked]="selectedOption === 'now'"
+           (click)="$event.stopPropagation()"
+           class="h-5 w-5 text-blue-600">
+  </div>
+</div>
+
+<!-- Pay Later Option -->
+<div class="mb-6 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+     (click)="selectOption('later')">
+  <div class="flex justify-between items-center mb-2">
+    <div>
+      <h2 class="font-medium">Pay part now, part later</h2>
+    </div>
+    <input type="radio" name="paymentOption"
+           [checked]="selectedOption === 'later'"
+           (click)="$event.stopPropagation()"
+           class="h-5 w-5 text-blue-600">
+  </div>
+  <div class="text-sm text-gray-600">
+    <p>
+      {{ priceData.totalAmount | number:'1.2-2' }}  today with
+      No extra fees.
+    </p>
+    <a href="#"
+       (click)="showInfoModal = true; $event.stopPropagation(); $event.preventDefault()"
+       class="text-blue-600 hover:underline">
+      More info
+    </a>
+  </div>
+</div>
+
+<!-- Modal for More Info -->
+<div *ngIf="showInfoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="showInfoModal = false">
+  <div (click)="$event.stopPropagation()" class="bg-white rounded-lg border-2 border-gray-300 p-6 w-full max-w-md mx-4 relative">
+    <!-- Close Button (X) -->
+    <button (click)="showInfoModal = false" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">
+      &times;
+    </button>
+      <!-- Modal Content -->
+    <h2 class="text-xl font-bold mb-4">Pay part now, part later</h2>
+    <p class="mb-4">You can pay for part of this reservation now, and the rest later. No additional fees.</p>
+
+    <div class="space-y-3 mb-4">
+      <div class="border-l-4 border-blue-500 pl-3">
+        <h3 class="font-semibold">Pay part of the total now</h3>
+        <p class="text-sm text-gray-600">Confirm your reservation by paying a portion of the total amount.</p>
+      </div>
+
+      <div class="border-l-4 border-blue-500 pl-3">
+        <h3 class="font-semibold">Pay the rest before check-in</h3>
+        <p class="text-sm text-gray-600">Your original payment method will be charged on the second payment date.</p>
+      </div>
+          <div class="border-l-4 border-blue-500 pl-3">
+        <h3 class="font-semibold">Payment is automatic</h3>
+        <p class="text-sm text-gray-600">You don't have to worry, we'll send a reminder 3 days before the next payment.</p>
+      </div>
+    </div>
+
+    <p class="text-sm text-gray-500">Terms Apply</p>
+  </div></div>
+            <!-- Payment Form -->
+            <div class="mt-8">
+                            <form [formGroup]="order" (ngSubmit)="orderSubmit()" class="p-6" >
+
+              <h3 for="paywith" class="text-xl font-bold mb-6">Pay with</h3>
+
+              <select id="paywith" (change)="onPaymentMethodChange($event)"
+                      class="w-full border border-gray-200 p-3 rounded-lg font-medium mb-6">
+                <option value="credit" [selected]="activePaymentMethod === 'credit'">Credit card</option>
+                <option value="debit" [selected]="activePaymentMethod === 'debit'">Debit card</option>
+              </select>
+
+                <div class="mb-7">
+                  <label for="cardnumber" class="block font-medium mb-5">Card number</label>
+                  <input formControlName="cardnumber" type="text" id="cardNumber" class="w-full rounded-lg border border-gray-200 p-2" required >
+                </div>
+                
+  <div class="mb-7">
+                  <label for="nameoncard" class="block font-medium mb-5">Name On Card</label>
+                  <input formControlName="nameoncard" type="text" id="nameoncard" class="w-full rounded-lg border border-gray-200 p-2" required >
+                </div>
+                <div class="flex gap-3 mb-7" >
+                  <div class="flex-1 ">
+                    <label for="expiry" class="block font-medium mb-2">Expiration date</label>
+                    <input formControlName="expiry" type="text" id="expiry" class="w-full rounded-lg border border-gray-200 p-2" required >
+                  </div>
+                  <div class="flex-1">
+                    <label for="cvv" class="block font-medium mb-2">CVV</label>
+                    <input formControlName="cvv" type="text" id="cvv" class="w-full rounded-lg border border-gray-200 p-2" required>
+                  </div>
+                </div>
+
+                <div >
+                  <h3 class="text-lg font-semibold mb-4">Billing address</h3>
+
+                  <div class="mb-4">
+                    <label for="streetAddress" class="block font-medium mb-2">Street address</label>
+                    <input formControlName="streetAddress" type="text" id="streetAddress" class="w-full rounded-lg border border-gray-200 p-3" required>
+                  </div>
+
+                  <div class="mb-4">
+                    <label for="aptSuite" class="block font-medium mb-2">Apt or suite number (optional)</label>
+                    <input formControlName="aptSuite" type="text" id="aptSuite" class="w-full rounded-lg border border-gray-200 p-3" required>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label for="city" class="block font-medium mb-2">City</label>
+                      <input formControlName="city" type="text" id="city" class="w-full rounded-lg border border-gray-200 p-3" required>
+                    </div>
+                    <div>
+                      <label for="state" class="block font-medium mb-2">State</label>
+                      <input formControlName="state" type="text" id="state" class="w-full rounded-lg border border-gray-200 p-3"required>
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label for="zipcode" class="block font-medium mb-2">ZIP code</label>
+                    <input formControlName="zipcode" type="text" id="zipcode" class="w-full rounded-lg border border-gray-200 p-3" required>
+                  </div>
+                </div>
+
+                <div class="mb-4 ">
+                  <label for="country" class="block font-medium mb-2">Country/region</label>
+                  <select id="country" formControlName="country" class="w-full rounded-lg border border-gray-200 p-3">
+                    <option>Egypt</option>
+                    <option>United States</option>
+                    <option>United Kingdom</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-rose-500 text-white rounded-lg py-3.5 px-4 font-semibold mt-6 hover:bg-rose-600 transition-colors">
+                  Confirm and pay
+                </button>
+
+                <p class="text-xs text-gray-500 text-center mt-4 leading-snug">
+                  You won't be charged until the host accepts your request (usually within 24 hours).
+                  If the host declines or doesn't respond, no charge is made.
+                </p>
+
+                <div class="flex items-center justify-center mt-4 text-gray-500 text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span>Secure payment</span>
+                </div>
+              </form>
+            </div>
+          </div>
+
+      </div>
+
+      <!-- Right Column - Property Details -->
+      <div class="lg:w-1/3">
+        <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+          <!-- Property Image -->
+          <div class="h-64 overflow-hidden mb-4">
+            <img src={{listings.imageUrls}} alt="Property image" class="w-full h-full object-cover">
+          </div>
+
+          <!-- Property Details -->
+          <div >
+            <h2 class="text-xl font-semibold mb-2">{{listings.title}}</h2>
+            <div class="flex items-center mb-3">
+            <span *ngFor="let star of getStars(listings.averageRating)">
+  <ng-container [ngSwitch]="star">
+    <span *ngSwitchCase="'full'" class="text-rose-500">★</span>
+    <span *ngSwitchCase="'half'" class="text-rose-500">☆</span>
+    <span *ngSwitchCase="'empty'" class="text-gray-300">★</span>
+  </ng-container>
+</span>
+
+<span class="ml-1 text-gray-500 underline">
+  {{ listings.averageRating.toFixed(1) }}
+</span>
+
+
+              <span class="ml-1 text-gray-500 underline">({{listings.reviewCount}} reviews)</span>
+            </div>
+
+            <p class="text-gray-500 mb-4 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+        <span> {{listings.country}} / </span>
+                <span> {{listings.city}}</span>
+
+            </p>
+<!-- is loading function -->
+
+
+
+      <div class="flex justify-between mb-4 border-t border-gray-200 pt-4">
+        <span>Service fee</span>
+        <span> {{listings.serviceFee}}</span>
+      </div>
+
+ <div class="flex justify-between mb-4">
+        <span>Price Per Night</span>
+        <span>{{listings.pricePerNight}}</span>
+      </div>
+<!--
+ <div *ngIf="!isLoading">
+      <div class="flex justify-between mb-4">
+         <span>AvgRating {{listings.averageRating}}</span>
+</div> -->
+          <!-- × {{listings.nights}} nights</span>  -->
+        <!-- <span>Price per Night {{listings.pricePerNight}}</span> -->
+
+  <!-- <div class="flex justify-between mb-4">
+        <span>TotalAmount</span>
+        <span></span>
+      </div> -->
+
+            <div class="border-t border-gray-200 pt-4">
+              <h3 class="text-lg font-semibold mb-3">Cancellation policy</h3>
+              <p class="text-sm text-gray-600 mb-4">Free cancellation before May 1. Review the Host's full cancellation policy.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
