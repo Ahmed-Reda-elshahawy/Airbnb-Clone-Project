@@ -40,6 +40,7 @@ namespace WebApplication1.Repositories
         {
             queryParams.TryGetValue("startDate", out var startDateStr);
             queryParams.TryGetValue("endDate", out var endDateStr);
+            queryParams.TryGetValue("Location", out var locationStr);
 
             DateTime? startDate = null;
             DateTime? endDate = null;
@@ -56,6 +57,7 @@ namespace WebApplication1.Repositories
             // Remove availability parameters from filtering
             queryParams.Remove("startDate");
             queryParams.Remove("endDate");
+            queryParams.Remove("Location");
 
             var listings = await GetAllAsync(queryParams, includeProperties);
 
@@ -63,6 +65,17 @@ namespace WebApplication1.Repositories
             {
                 var availableIds = await availabilityRepository.GetAvailableListingIds(startDate.Value, endDate.Value);
                 listings = listings.Where(l => availableIds.Contains(l.Id));
+            }
+            if (!string.IsNullOrEmpty(locationStr))
+            {
+                var locationNormalized = locationStr.Trim().ToLower();  // Normalize the location query string
+
+                listings = listings.Where(l =>
+                    (!string.IsNullOrEmpty(l.City) && l.City.ToLower().Contains(locationNormalized)) ||
+                    (!string.IsNullOrEmpty(l.Country) && l.Country.ToLower().Contains(locationNormalized)) ||
+                    (!string.IsNullOrEmpty(l.Title) && l.Title.ToLower().Contains(locationNormalized)) ||
+                    (!string.IsNullOrEmpty(l.AddressLine1) && l.AddressLine1.ToLower().Contains(locationNormalized))
+                ).ToList();
             }
 
             return listings;
