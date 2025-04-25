@@ -37,7 +37,7 @@ interface RatingCategory {
     ButtonModule,
     ProgressBarModule,
     ReservationCardComponent,
-  ],
+],
   templateUrl: './listing-details.component.html',
   styleUrl: './listing-details.component.css',
 })
@@ -48,9 +48,9 @@ export class ListingDetailsComponent
     private listingsService: ListingsService,
     private cdr: ChangeDetectorRef
   ) {}
-  // unavailableDates: Date[] = [];
-  // checkIn: Date | null = null;
-  // checkOut: Date | null = null;
+    // unavailableDates: Date[] = [];
+    // checkIn: Date | null = null;
+    // checkOut: Date | null = null;
 
   @Input() listing: Listing = {} as Listing;
   private readonly _ActivatedRoute = inject(ActivatedRoute);
@@ -68,8 +68,8 @@ export class ListingDetailsComponent
   defaultVisibleReviewsCount: number = 4;
   ratingCategories: RatingCategory[] = [];
 
-  ngOnInit(): void {
-    this._ActivatedRoute.paramMap.subscribe({
+   ngOnInit(): void {
+      this._ActivatedRoute.paramMap.subscribe({
       next: (urlData) => {
         let listingId = urlData.get('listId') as string;
 
@@ -77,17 +77,17 @@ export class ListingDetailsComponent
         this.subscription = this.listingsService
           .getListingById(listingId)
           .subscribe({
-            next: (data) => {
+        next: (data) => {
               this.listing = data;
-              this.updateVisibleAmenities();
-              this.updateVisibleReviews();
-              this.cdr.detectChanges();
+          this.updateVisibleAmenities();
+          this.updateVisibleReviews();
+          this.cdr.detectChanges();
               console.log(data);
               this.loading = false;
-              if (this.listing && this.listing.reviews) {
-                this.initializeRatings();
-              }
-            },
+          if (this.listing && this.listing.reviews) {
+            this.initializeRatings();
+          }
+        },
             error: () => {
               this.error = 'failed to load the details of this listing';
               this.loading = false;
@@ -95,10 +95,10 @@ export class ListingDetailsComponent
           });
       },
     });
-  }
+        }
 
-  ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
+    ngOnDestroy(): void {
+      this.subscription?.unsubscribe();
   }
 
   initializeRatings() {
@@ -178,27 +178,27 @@ export class ListingDetailsComponent
     return Math.ceil((x / this.listing.reviews.length) * 10) / 10;
   }
 
-  ratingToPercentage(rating: number): number {
+ratingToPercentage(rating: number): number {
     return (rating / 5) * 100;
-  }
+}
 
   updateVisibleAmenities() {
-    console.log('Amenities:', this.listing.amenities);
+  console.log('Amenities:', this.listing.amenities);
     this.visibleAmenities = this.showAllAmenities
       ? this.listing.amenities
       : this.listing.amenities.slice(0, this.defaultVisibleCount);
-  }
+}
 
   updateVisibleReviews() {
     this.visibleReviews = this.showAllReviews
       ? this.listing.reviews
       : this.listing.reviews.slice(0, this.defaultVisibleReviewsCount);
-  }
+}
 
-  toggleReviews() {
+toggleReviews() {
     this.showAllReviews = !this.showAllReviews;
     this.updateVisibleReviews();
-  }
+}
 
   toggleAmenities() {
     this.showAllAmenities = !this.showAllAmenities;
@@ -210,10 +210,10 @@ export class ListingDetailsComponent
     this.showAllPhotos = !this.showAllPhotos;
   }
 
-  reserveNow() {
+reserveNow() {
     // In a real app, this would send reservation data to a service
     alert('Your reservation has been confirmed!');
-  }
+}
 
   ngAfterViewInit(): void {
     setTimeout(() => {

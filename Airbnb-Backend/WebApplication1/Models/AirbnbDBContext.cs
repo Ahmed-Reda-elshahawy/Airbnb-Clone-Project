@@ -87,15 +87,15 @@ public partial class AirbnbDBContext : WebApplication1Context
                   .HasDefaultValueSql("NEWID()");
 
             entity.Property(e => e.Name)
-                  .IsRequired() 
+                  .IsRequired()
                   .HasMaxLength(100)
-                  .IsUnicode(false) 
-                  .HasColumnName("name");  
+                  .IsUnicode(false)
+                  .HasColumnName("name");
 
             entity.HasMany(e => e.Amenities)
-                  .WithOne(a => a.Category)  
-                  .HasForeignKey(a => a.CategoryId)  
-                  .OnDelete(DeleteBehavior.Cascade);  
+                  .WithOne(a => a.Category)
+                  .HasForeignKey(a => a.CategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
         modelBuilder.Entity<AvailabilityCalendar>(entity =>
         {
@@ -110,7 +110,6 @@ public partial class AirbnbDBContext : WebApplication1Context
                 .HasColumnType("date")
                 .HasColumnName("date");
             entity.Property(e => e.IsAvailable)
-                .HasDefaultValue(true)
                 .HasColumnName("isAvailable");
             entity.Property(e => e.ListingId).HasColumnName("listingId");
             entity.Property(e => e.SpecialPrice)
@@ -546,6 +545,10 @@ public partial class AirbnbDBContext : WebApplication1Context
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("stripeId");
+            entity.Property(e => e.stripeCode)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("stripeCode");
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(50)
@@ -794,7 +797,6 @@ public partial class AirbnbDBContext : WebApplication1Context
             entity.HasOne(d => d.Wishlist).WithMany(p => p.WishlistItems)
                 .HasForeignKey(d => d.WishlistId)
                 .HasConstraintName("FK__WishlistI__wishl__01142BA1");
-
 
         });
         modelBuilder.Entity<Conversation>()

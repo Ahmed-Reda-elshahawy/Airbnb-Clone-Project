@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using WebApplication1.DTOS.ChatBot;
 using WebApplication1.Interfaces.ChatBot;
 
 namespace WebApplication1.Repositories.ChatBot
@@ -26,21 +27,31 @@ namespace WebApplication1.Repositories.ChatBot
             _modelName = _configuration["AI:DefaultModel"];
 
             // Only read configuration values here
-            _systemPrompt = @"You are an Airbnb expert assistant. Your knowledge is strictly limited to:
-- Vacation rental listings
-- Booking and reservation management
-- Host and guest communication
-- Airbnb policies and procedures
-- Safety and payment systems
-- Profile and account management
+            _systemPrompt = @"You are an expert AI assistant specialized in Airbnb and vacation rentals. Your knowledge covers all aspects of short-term rentals, including:  
 
-Do NOT answer questions about:
-- General knowledge
-- Other companies/services
-- Technical/IT topics
-- Off-topic personal advice
+**Core Expertise:**  
+✔ Airbnb listings, pricing, and optimization  
+✔ Booking management, cancellations, and refunds  
+✔ Host guidelines, guest communication, and reviews  
+✔ Airbnb policies (extenuating circumstances, damages, disputes)  
+✔ Safety, trust, and payment systems  
+✔ Profile, account settings, and troubleshooting  
 
-If unsure, ask the user to rephrase their question about Airbnb services.";
+**Extended Knowledge (Still Airbnb/Vacation Rental Focused):**  
+✔ Competitor analysis (VRBO, Booking.com) *only in relation to Airbnb*  
+✔ Local regulations & taxes for short-term rentals  
+✔ Interior design & amenities for better guest experience  
+✔ Dynamic pricing strategies and seasonal trends  
+✔ Marketing tips for hosts (social media, photography)  
+
+**Strict Limitations (Do NOT Answer):**  
+❌ General travel tips (flights, non-Airbnb hotels)  
+❌ Unrelated tech support (Wi-Fi, devices outside Airbnb)  
+❌ Legal/financial advice beyond Airbnb policies  
+❌ Off-topic personal or non-rental topics  
+
+If a question is unclear, ask the user to rephrase it within the Airbnb/vacation rental context.";
+
             Console.WriteLine($"[ModelKeyConfiguration] Initialized for {_modelName}");
         }
 
@@ -48,43 +59,55 @@ If unsure, ask the user to rephrase their question about Airbnb services.";
         // Only the constructor was modified to add API key support
         public async Task<string> GenerateResponseAsync(string prompt, string conversationHistory)
         {
-            //try
-            //{
-                var messages = new List<object>
-                {
-                    new { role = "system", content = _systemPrompt },
-                    new { role = "user", content = prompt }
-                };
+            // Create a list to hold all messages
+            var messages = new List<object>();
 
-                var requestBody = new
+            // Add system prompt
+            messages.Add(new { role = "system", content = _systemPrompt });
+
+            // Parse and add conversation history if it exists
+            if (!string.IsNullOrEmpty(conversationHistory))
+            {
+                try
                 {
-                    model = _modelName,
-                    messages,
-                    max_tokens = 250,
-                    temperature = 0.7
-                };
+                    // Assuming conversationHistory is a JSON array of message objects
+                    var historyMessages = JsonSerializer.Deserialize<List<object>>(conversationHistory);
+                    if (historyMessages != null)
+                    {
+                        messages.AddRange(historyMessages);
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"Error parsing conversation history: {ex.Message}");
+                    // Continue with just the system prompt if parsing fails
+                }
+            }
+
+            // Add the current user prompt
+            messages.Add(new { role = "user", content = prompt });
+
+            var requestBody = new
+            {
+                model = _modelName,
+                messages,
+                max_tokens = 250,
+                temperature = 0.7
+            };
 
             var content = new StringContent(
-                    JsonSerializer.Serialize(requestBody),
-                    Encoding.UTF8,
-                    "application/json");
+                JsonSerializer.Serialize(requestBody),
+                Encoding.UTF8,
+                "application/json");
 
             using var response = await _httpClient.PostAsync("chat/completions", content);
-
             if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"API Error: {errorContent}");
-                    throw new HttpRequestException($"API Error ({response.StatusCode}): {errorContent}");
-                }
-
-                return await ProcessApiResponse(response);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine($"GenerateResponseAsync error: {ex}");
-            //    return "I encountered an issue processing your request. Please try again.";
-            //}
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"API Error: {errorContent}");
+                throw new HttpRequestException($"API Error ({response.StatusCode}): {errorContent}");
+            }
+            return await ProcessApiResponse(response);
         }
 
 
@@ -104,6 +127,30 @@ If unsure, ask the user to rephrase their question about Airbnb services.";
                 Console.WriteLine($"JSON parsing error: {ex.Message}");
                 return "Failed to parse API response";
             }
+        }
+        public async Task<string> TranscribeAudioAsync(IFormFile audioFile)
+        {
+            using var formData = new MultipartFormDataContent();
+            using var fileStream = audioFile.OpenReadStream();
+            using var fileContent = new StreamContent(fileStream);
+
+            formData.Add(fileContent, "file", audioFile.FileName);
+            formData.Add(new StringContent("whisper-1"), "model"); // This is already set correctly
+
+            // Make sure your HttpClient is initialized with the correct API key in the constructor
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/audio/transcriptions", formData);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Whisper API error (Status: {response.StatusCode}): {errorContent}");
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var transcriptionResponse = JsonSerializer.Deserialize<TranscriptionResponse>(jsonResponse, options);
+
+            return transcriptionResponse.Text;
         }
 
         public async Task<T> ExecuteToolAsync<T>(string toolName, object parameters)

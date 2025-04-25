@@ -34,7 +34,7 @@ export class ListingsService {
 
   getListingById(id: string) {
     return this.http.get<Listing>(`${this.apiUrl}/Listings/${id}`);
-  }
+}
 
   deleteListing(id: string) {
     return this.http.delete<Listing>(`${this.apiUrl}/Listings/${id}`);

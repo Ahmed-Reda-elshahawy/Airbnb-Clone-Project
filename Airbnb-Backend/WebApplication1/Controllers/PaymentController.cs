@@ -36,8 +36,8 @@ namespace WebApplication1.Controllers
 
         #region Create Payment Intent
         [HttpPost("booking/{bookingId}/create-intent")]
-        [Authorize(Roles = "Guest")]
-        public async Task<IActionResult> CreatePaymentIntent(Guid bookingId,[FromBody] PaymentIntentRequestDTO request)
+        [Authorize]
+        public async Task<IActionResult> CreatePaymentIntent(Guid bookingId, [FromBody] PaymentIntentRequestDTO request)
         {
             try
             {
@@ -53,7 +53,7 @@ namespace WebApplication1.Controllers
 
         #region Confirm Payment / Create
         [HttpPost("booking/{bookingId}/confirm")]
-        public async Task<ActionResult<PaymentResponseDTO>> ConfirmPayment(Guid bookingId,[FromBody] ConfirmPaymentDTO dto)
+        public async Task<ActionResult<PaymentResponseDTO>> ConfirmPayment(Guid bookingId, [FromBody] ConfirmPaymentDTO dto)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace WebApplication1.Controllers
 
         #region Cancel Payment Intent
         [HttpPost("cancel-intent/{paymentIntentId}")]
-        [Authorize(Roles = "Guest")]
+        [Authorize]
         public async Task<IActionResult> CancelPaymentIntent(string paymentIntentId)
         {
             try
@@ -92,14 +92,14 @@ namespace WebApplication1.Controllers
 
         #region Get Methods
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> GetAllPayments([FromQuery] Dictionary<string, string> queryParams)
         {
             var payments = await _paymentRepository.GetAllAsync(queryParams);
             return Ok(payments);
         }
         [HttpGet("me")]
-        [Authorize(Roles = "Guest")]
+        [Authorize]
         public async Task<IActionResult> GetUserPayments()
         {
             var userId = _paymentRepository.GetCurrentUserId();
@@ -107,7 +107,7 @@ namespace WebApplication1.Controllers
             return Ok(payments);
         }
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> GetUserPaymentById(Guid id)
         {
             var payment = await _paymentRepository.GetByIDAsync(id);
@@ -120,7 +120,7 @@ namespace WebApplication1.Controllers
         #region Sessions
 
         [HttpPost("checkout-session/{bookingId}")]
-        [Authorize(Roles ="Guest")]
+        [Authorize]
         public async Task<IActionResult> CreateCheckoutSession(Guid bookingId, [FromBody] PaymentSessionRequestDTO dto)
         {
             try

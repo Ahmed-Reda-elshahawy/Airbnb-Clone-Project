@@ -12,7 +12,6 @@ namespace WebApplication1.Mappings
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<InitAvailabilityCalendarDTO, AvailabilityCalendar>()
-                .ForMember(dest => dest.IsAvailable, opt => opt.MapFrom(src => true))
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<SetAvailabilityCalendarDTO, AvailabilityCalendar>()

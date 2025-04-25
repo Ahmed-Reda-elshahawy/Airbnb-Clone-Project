@@ -90,15 +90,15 @@ export class ReservationComponent implements OnInit {
 
   loadListings() {
     this.listingsService.getListingById('3826a636-f756-4251-9149-528ed1962cbf').subscribe({
-      next: (data) => {
-        this.listings = data;
-        console.log('Listings loaded:', this.listings);
-      },
-      error: (err) => {
-        console.error('Error loading listings:', err);
-      }
-    });
-  }
+    next: (data) => {
+      this.listings = data;
+      console.log('Listings loaded:', this.listings);
+    },
+    error: (err) => {
+      console.error('Error loading listings:', err);
+    }
+  });
+}
 
   setupFormListeners() {
     this.order.get('paywith')?.valueChanges.subscribe(value => {
@@ -144,7 +144,7 @@ orderSubmit() {
     this.paymentProcessing = false;
     console.error('Payment failed:', err);
     alert('Payment failed: ' + (err.message || 'Unknown error'));
-  }
+}
 
 
  private processPayment() {

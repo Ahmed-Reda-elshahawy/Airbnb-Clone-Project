@@ -11,10 +11,4 @@ export interface ChatState {
   currentConversationId: string | null;
 }
 
-export interface ChatMessage {
-  userId: string;
-  isFromUser: boolean;
-  content: string;
-  timestamp: Date;
-  conversationId: string;
-}
+import { ChatMessage } from '../../core/models/ChatMessage';

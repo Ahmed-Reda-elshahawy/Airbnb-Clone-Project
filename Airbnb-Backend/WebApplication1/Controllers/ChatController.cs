@@ -1,9 +1,9 @@
 ﻿// Controllers/ChatController.cs
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using WebApplication1.DTOS.ChatBot;
 using WebApplication1.Interfaces.ChatBot;
 using WebApplication1.Models.ChatBot;
 using WebApplication1.Repositories.ChatBot;
@@ -16,17 +16,38 @@ namespace AirbnbClone.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IChatRepository _chatService;
+        private readonly IAiRepository _aiRepository;
 
-        public ChatController(IChatRepository chatService)
+        public ChatController(IChatRepository chatService, IAiRepository aiRepository)
         {
             _chatService = chatService;
+            _aiRepository = aiRepository;
         }
 
+        [HttpPost("conversation")]
+        public async Task<ActionResult<string>> CreateConversation()
+        {
+            var userId = User.Identity.Name;
+            var conversationId = await _chatService.CreateNewConversationAsync(userId);
+            return Ok(new { conversationId });
+        }
+        [HttpGet("conversations")]
+        public async Task<ActionResult<IEnumerable<Conversation>>> GetMostRecentConversationAsync()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("User ID not found in token");
+            }
+
+            var conversations = await _chatService.GetAllConversationsAsync(userId);
+            return Ok(conversations.OrderByDescending(m => m.CreatedAt));
+        }
         [HttpGet("conversation/{conversationId}")]
         public async Task<ActionResult<List<ChatMessage>>> GetConversation(string conversationId)
         {
-            var userId = User.Identity.Name;
-            var messages = await _chatService.GetConversationHistoryAsync(userId, conversationId);
+            var email = User.Identity.Name;
+            var messages = await _chatService.GetConversationHistoryAsync(email, conversationId);
             return Ok(messages);
         }
 
@@ -38,22 +59,35 @@ namespace AirbnbClone.Controllers
             return Ok(response);
         }
 
-        [HttpPost("conversation")]
-        public async Task<ActionResult<string>> CreateConversation()
-        {
-            var userId = User.Identity.Name;
-            var conversationId = await _chatService.CreateNewConversationAsync(userId);
-            return Ok(new { conversationId });
-        }
 
-        [HttpGet("most-recent-conversation")]
-        public async Task<ChatMessage> GetMostRecentConversationAsync(string userId)
+
+        [HttpPost("audio")]
+        [ApiExplorerSettings(IgnoreApi = true)]  
+        public async Task<IActionResult> ProcessAudioMessage([FromForm] IFormFile audioFile, [FromForm] string conversationId)
         {
-            // Corrected the method to return ChatMessage instead of Conversation
-            var messages = await _chatService.GetConversationHistoryAsync(userId, null); // Assuming null for conversationId to fetch all
-            return messages
-                .OrderByDescending(m => m.Timestamp)
-                .FirstOrDefault();
+            if (audioFile == null || audioFile.Length == 0)
+                return BadRequest("No audio file was provided.");
+
+            try
+            {
+                var userId = User.Identity.Name;
+
+                // Step 1: Transcribe the audio using Whisper API
+                string transcription = await _aiRepository.TranscribeAudioAsync(audioFile);
+
+                // Step 2: Process the transcription using existing chat service
+                var response = await _chatService.ProcessMessageAsync(userId, transcription, conversationId);
+
+                return Ok(new
+                {
+                    transcription = transcription,
+                    response = response
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
     }
 

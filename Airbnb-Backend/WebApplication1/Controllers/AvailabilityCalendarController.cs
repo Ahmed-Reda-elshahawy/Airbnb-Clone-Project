@@ -138,7 +138,7 @@ namespace WebApplication1.Controllers
             {
                 if (endDate == null)
                 {
-                   var availableListings = await _availabilityCalendarRepository.GetAvailablilityListingsAsync(listingId, startDate, startDate);
+                    var availableListings = await _availabilityCalendarRepository.GetAvailablilityListingsAsync(listingId, startDate, startDate);
                     if (availableListings == null || !availableListings.Any())
                     {
                         return NotFound("No available listings found for the given date range.");
@@ -148,7 +148,7 @@ namespace WebApplication1.Controllers
                 }
                 else
                 {
-                   var availableListings = await _availabilityCalendarRepository.GetAvailablilityListingsAsync(listingId, startDate, endDate.Value);
+                    var availableListings = await _availabilityCalendarRepository.GetAvailablilityListingsAsync(listingId, startDate, endDate.Value);
                     if (availableListings == null || !availableListings.Any())
                     {
                         return NotFound("No available listings found for the given date range.");
@@ -187,6 +187,14 @@ namespace WebApplication1.Controllers
             return Ok(new { message = $"{count} entries updated." });
         }
         #endregion
+
+        [HttpGet("listings/{listingId}/has-availability")]
+        public async Task<IActionResult> HasAvailability(Guid listingId)
+        {
+            var hasAvailability = await _availabilityCalendarRepository.HasAvailabilityAsync(listingId);
+            return Ok(new { listingId, hasAvailability });
+        }
+
+
     }
 }
-

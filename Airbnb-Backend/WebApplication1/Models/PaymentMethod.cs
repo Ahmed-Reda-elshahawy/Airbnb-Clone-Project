@@ -11,6 +11,7 @@ public partial class PaymentMethod
     public int Id { get; set; }
     public string Name { get; set; }
     public string stripeId { get; set; }
+    public string stripeCode { get; set; }
     [JsonIgnore]
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

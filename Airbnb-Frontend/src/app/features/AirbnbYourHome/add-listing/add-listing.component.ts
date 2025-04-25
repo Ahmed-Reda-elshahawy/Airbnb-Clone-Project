@@ -352,9 +352,9 @@ export class AddListingComponent implements OnInit, OnDestroy {
 
     const readerPromises = validFiles.map(file => {
       return new Promise<UploadedImage>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e: ProgressEvent<FileReader>) => {
-          const preview = e.target?.result as string;
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        const preview = e.target?.result as string;
           resolve({ file, preview, caption: '' });
         };
         reader.readAsDataURL(file);
@@ -363,9 +363,9 @@ export class AddListingComponent implements OnInit, OnDestroy {
 
     Promise.all(readerPromises).then(newImages => {
       this.uploadedImages = [...this.uploadedImages, ...newImages];
-      this.listingForm.patchValue({
-        images: this.uploadedImages
-      });
+        this.listingForm.patchValue({
+          images: this.uploadedImages
+        });
       // Force change detection
       this.listingForm.get('images')?.updateValueAndValidity();
     });
@@ -403,7 +403,7 @@ export class AddListingComponent implements OnInit, OnDestroy {
       // For images step, check only newly uploaded photos
       const newPhotos = this.uploadedImages.filter(img => img.file !== null);
       return newPhotos.length >= 4;
-    }
+  }
     return currentStepDefinition.isValid();
   }
 
@@ -485,7 +485,7 @@ export class AddListingComponent implements OnInit, OnDestroy {
           })
         ).subscribe({
           next: () => {
-            this.uploadImages(this.listingId);
+              this.uploadImages(this.listingId);
           },
           error: (error) => {
             console.error('Error updating listing or setting availability', error);
@@ -529,13 +529,13 @@ export class AddListingComponent implements OnInit, OnDestroy {
       this.formErrors['submit'] = 'Please upload at least 4 new photos';
       this.isLoading = false;
       return;
-    }
+      }
 
     // Map photos for upload
     const photosToUpload = newPhotos.map(img => ({
-      file: img.file as File,
+        file: img.file as File,
       caption: img.caption || 'Image Caption'
-    }));
+      }));
 
     // Update listing photos
     this.listingsService.updateListingPhotos(listingId, photosToUpload).subscribe({

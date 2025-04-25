@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
+using WebApplication1.Models.ChatBot;
 
 namespace WebApplication1.Models
 {
@@ -32,6 +33,7 @@ namespace WebApplication1.Models
         public virtual ICollection<Review> ReviewHosts { get; set; } = new List<Review>();
         [NotMapped]
         public virtual ICollection<Review> ReviewReviewers { get; set; }
+        public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
         public virtual VerificationStatus VerificationStatus { get; set; }
         public virtual Wishlist Wishlist { get; set; }
     }
