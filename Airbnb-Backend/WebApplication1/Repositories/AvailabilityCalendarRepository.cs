@@ -104,25 +104,58 @@ namespace WebApplication1.Repositories
             return true;
         }
 
+        //public async Task<int> BatchUpdateAvailabilityAsync(Guid listingId, List<SetAvailabilityCalendarDTO> updates)
+        //{
+        //    int updated = 0;
+
+        //    foreach (var dto in updates)
+        //    {
+        //        var dates = await GetDateRangeAsync(listingId, dto);
+
+        //        foreach (var date in dates)
+        //        {
+        //            var updateDto = mapper.Map<UpdateAvailabilityCalendarDTO>(dto);
+
+        //            var isUpdated = await UpdateAvailabilityAsync(listingId, date, updateDto);
+        //            if (isUpdated) updated++;
+        //        }
+        //    }
+
+        //    return updated;
+        //}
         public async Task<int> BatchUpdateAvailabilityAsync(Guid listingId, List<SetAvailabilityCalendarDTO> updates)
         {
-            int updated = 0;
+            int totalAffected = 0;
 
             foreach (var dto in updates)
             {
                 var dates = await GetDateRangeAsync(listingId, dto);
+                int updated = 0;
 
                 foreach (var date in dates)
                 {
                     var updateDto = mapper.Map<UpdateAvailabilityCalendarDTO>(dto);
 
-                    var isUpdated = await UpdateAvailabilityAsync(listingId, date, updateDto);
-                    if (isUpdated) updated++;
+                    bool isUpdated = await UpdateAvailabilityAsync(listingId, date, updateDto);
+
+                    if (isUpdated)
+                        updated++;
+                }
+                int inserted = 0;
+                if (updated < dates.Count)
+                {
+                    inserted = await SetAvailabilityAsync(listingId, dto);
+                    totalAffected += inserted;
+                }
+                else
+                {
+                    totalAffected += updated;
                 }
             }
 
-            return updated;
+            return totalAffected;
         }
+
         #endregion
 
         #region Get Availability
@@ -134,6 +167,16 @@ namespace WebApplication1.Repositories
 
             return availableListings;
         }
+        public async Task<bool> GetIfAvailabilityListingsAsync(Guid listingId, DateTime startDate, DateTime endDate)
+        {
+            int totalDays = (endDate - startDate).Days + 1;
+
+            int availableDays = await context.AvailabilityCalendars
+                .CountAsync(a => a.ListingId == listingId && a.Date >= startDate && a.Date <= endDate && (a.IsAvailable ?? true));
+
+            return availableDays == totalDays;
+        }
+
         #endregion
 
         #region Helper Method

@@ -163,11 +163,29 @@ namespace WebApplication1.Controllers
                 return StatusCode(500, $"An error occurred while fetching available listings: {ex.Message}");
             }
         }
+        [HttpGet("listings/{listingId}/isavailable")]
+        //[Authorize]
+        public async Task<IActionResult> GetIfAvailabilityListings(Guid listingId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            if (endDate < startDate)
+            {
+                return BadRequest("EndDate cannot be earlier than StartDate.");
+            }
+            try
+            {
+                var isAvailable = await _availabilityCalendarRepository.GetIfAvailabilityListingsAsync(listingId, startDate, endDate);
+                return Ok(new { listingId, isAvailable });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
         #endregion
 
         #region Update Methods
         [HttpPut("listings/{listingId}/date/{date}")]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<AvailabilityCalendar>> UpdateAvailability(Guid listingId, DateTime date, [FromBody] UpdateAvailabilityCalendarDTO dto)
         {
             if (dto == null)
@@ -178,7 +196,7 @@ namespace WebApplication1.Controllers
             return updated ? Ok("Updated successfully.") : NotFound("Availability entry not found.");
         }
         [HttpPost("listings/{listingId}/batch")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> BatchUpdate(Guid listingId, [FromBody] List<SetAvailabilityCalendarDTO> updates)
         {
             if (updates.Count == 0) return BadRequest("No entries to update.");
@@ -194,7 +212,6 @@ namespace WebApplication1.Controllers
             var hasAvailability = await _availabilityCalendarRepository.HasAvailabilityAsync(listingId);
             return Ok(new { listingId, hasAvailability });
         }
-
 
     }
 }
