@@ -14,66 +14,38 @@ namespace WebApplication1.Controllers
 
         private readonly IWishListRepository wishlistRepo;
         private readonly IUserRepository irepo;
+        private HttpContextAccessor _httpContextAccessor;
 
-        public WishlistsController(IWishListRepository _wishlistRepo, IUserRepository _irepo)
+        public WishlistsController(IWishListRepository _wishlistRepo, IUserRepository _irepo, HttpContextAccessor httpContextAccessor)
         {
             wishlistRepo = _wishlistRepo;
             irepo = _irepo;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpGet]
         public async Task<ActionResult<List<WishlistDto>>> GetWishlist()
         {
-            var userId = await GetCurrentUserIdAsync();
+            if (!IsAuthenticated())
+            {
+                return Ok(new { message = "Not logged in" });
+            }
+            var userId = GetCurrentUserId();
             var wishlist = await wishlistRepo.GetUserWishlistsAsync(userId);
             return Ok(wishlist);
         }
-        
-        //[HttpGet("{id}")]
-        //[AllowAnonymous]
-        //public async Task<ActionResult<WishlistDetailDto>> GetWishlist(Guid id)
-        //{
-        //    try
-        //    {
-        //        var userId = User.Identity.IsAuthenticated ? await GetCurrentUserIdAsync() : Guid.Empty;
-        //        var wishlist = await wishlistRepo.GetWishlistByIdAsync(id, userId);
-        //        return Ok(wishlist);
-        //    }
-        //    catch (KeyNotFoundException)
-        //    {
-        //        return NotFound();
-        //    }
-        //    catch (UnauthorizedAccessException)
-        //    {
-        //        return Forbid();
-        //    }
-        //}
-
-        //[HttpPut("{id}")]
-        //public async Task<ActionResult<WishlistDto>> UpdateWishlist(Guid id, [FromBody] UpdateWishlistDto dto)
-        //{
-        //    try
-        //    {
-        //        var userId = GetCurrentUserId();
-        //        var wishlist = await wishlistRepo.UpdateWishlistAsync(id, userId, dto.Name, dto.IsPublic);
-        //        return Ok(wishlist);
-        //    }
-        //    catch (KeyNotFoundException)
-        //    {
-        //        return NotFound();
-        //    }
-        //    catch (UnauthorizedAccessException)
-        //    {
-        //        return Forbid();
-        //    }
-        //}
-
+       
         [HttpDelete]
         public async Task<ActionResult> DeleteWishlist()
         {
             try
             {
-                var userId = await GetCurrentUserIdAsync();
+                if (!IsAuthenticated())
+                {
+                    return Ok(new { message = "Not logged in"});
+                }
+
+                var userId = GetCurrentUserId();
                 await wishlistRepo.DeleteWishlistAsync(userId);
                 return NoContent();
             }
@@ -91,8 +63,12 @@ namespace WebApplication1.Controllers
         public async Task<ActionResult<WishlistItemDto>> AddItemToWishlist(/*Guid wishlistId,*/ [FromBody] AddWishlistItemDto dto)
         {
             try
-            {   
-                var userId = await GetCurrentUserIdAsync();
+            {
+                if (!IsAuthenticated())
+                {
+                    return Ok(new { message = "Not logged in" });
+                }
+                var userId = GetCurrentUserId();
                 var wishlistDto = await wishlistRepo.GetUserWishlistsAsync(userId);
                 var item = await wishlistRepo.AddItemToWishlistAsync(userId, dto.ListingId);
                 return CreatedAtAction(nameof(GetWishlist), item);
@@ -116,7 +92,11 @@ namespace WebApplication1.Controllers
         {
             try
             {
-                var userId = await GetCurrentUserIdAsync();
+                if (!IsAuthenticated())
+                {
+                    return Ok(new { message = "Not logged in" });
+                }
+                var userId = GetCurrentUserId();
                 await wishlistRepo.RemoveItemFromWishlistAsync(itemId, userId);
                 return NoContent();
             }
@@ -129,15 +109,15 @@ namespace WebApplication1.Controllers
                 return Forbid();
             }
         }
-        private async Task<Guid> GetCurrentUserIdAsync()
+        private Guid GetCurrentUserId()
         {
-            var currentUser = await irepo.GetCurrentUserAsync();
-            if (currentUser == null)
-            {
-                return Guid.Parse("c9e2c5a8-5460-4496-8f45-810b91abd2ba");
-            }
-            Guid userId = currentUser.Id;
-            return userId;
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(userId, out var guid) ? guid : Guid.Empty;
+        }
+
+        private bool IsAuthenticated()
+        {
+            return _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
         }
     }
 }

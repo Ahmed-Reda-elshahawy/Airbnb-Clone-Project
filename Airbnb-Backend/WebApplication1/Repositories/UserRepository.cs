@@ -22,15 +22,13 @@ namespace WebApplication1.Repositories
 
         public Guid GetCurrentUserId()
         {
-            var user = _httpContextAccessor.HttpContext?.User; 
-            if (user == null)
-                throw new InvalidOperationException("HttpContext or User is null");
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(userId, out var guid) ? guid : Guid.Empty;
+        }
 
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-                throw new InvalidOperationException("User ID claim not found");
-
-            return Guid.Parse(userIdClaim.Value);
+        public bool IsAuthenticated()
+        {
+            return _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
         }
 
         public async Task<ApplicationUser> GetCurrentUserAsync()
