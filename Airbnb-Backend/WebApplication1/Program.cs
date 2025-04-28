@@ -52,6 +52,10 @@ namespace WebApplication1
                 // Add other identity options as needed
             });
 
+            builder.Services.Configure<StripeSettings>(
+                            builder.Configuration.GetSection("Stripe")
+                            );
+            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
             //Add Authentication with JWT
             builder.Services.AddAuthentication(options =>
             {

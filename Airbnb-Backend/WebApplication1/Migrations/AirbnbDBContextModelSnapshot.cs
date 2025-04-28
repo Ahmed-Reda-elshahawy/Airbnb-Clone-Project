@@ -425,9 +425,7 @@ namespace WebApplication1.Migrations
                         .HasColumnName("date");
 
                     b.Property<bool?>("IsAvailable")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
-                        .HasDefaultValue(true)
                         .HasColumnName("isAvailable");
 
                     b.Property<Guid>("ListingId")
@@ -608,6 +606,9 @@ namespace WebApplication1.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<Guid?>("ApplicationUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -621,6 +622,8 @@ namespace WebApplication1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.ToTable("Conversations");
                 });
@@ -1088,6 +1091,12 @@ namespace WebApplication1.Migrations
                         .HasColumnType("varchar(50)")
                         .HasColumnName("name");
 
+                    b.Property<string>("stripeCode")
+                        .HasMaxLength(255)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("stripeCode");
+
                     b.Property<string>("stripeId")
                         .HasMaxLength(255)
                         .IsUnicode(false)
@@ -1482,6 +1491,13 @@ namespace WebApplication1.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.ChatBot.Conversation", b =>
+                {
+                    b.HasOne("WebApplication1.Models.ApplicationUser", null)
+                        .WithMany("Conversations")
+                        .HasForeignKey("ApplicationUserId");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Listing", b =>
                 {
                     b.HasOne("WebApplication1.Models.CancellationPolicy", "CancellationPolicy")
@@ -1711,6 +1727,8 @@ namespace WebApplication1.Migrations
             modelBuilder.Entity("WebApplication1.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Bookings");
+
+                    b.Navigation("Conversations");
 
                     b.Navigation("Listings");
 

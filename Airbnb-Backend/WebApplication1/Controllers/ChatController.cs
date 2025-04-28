@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.DTOS.Authentication;
 using WebApplication1.DTOS.ChatBot;
 using WebApplication1.Interfaces.ChatBot;
 using WebApplication1.Models.ChatBot;
@@ -12,7 +13,7 @@ namespace AirbnbClone.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize(Roles = $"{UserRoles.Guest},{UserRoles.Host},{UserRoles.Admin}")]
     public class ChatController : ControllerBase
     {
         private readonly IChatRepository _chatService;

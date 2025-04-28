@@ -1,4 +1,4 @@
-    <!-- listing-details.component.html -->
+<!-- listing-details.component.html -->
     <div class="listing-container">
       <!-- Header section -->
       <div class="listing-header">
@@ -109,13 +109,10 @@
           </div>
           <!-- Highlights -->
           <div class="listing-highlights">
-        <div
-          class="highlight-item"
-          *ngFor="let highlight of listing.description"
-        >
+            <div class="highlight-item">
               <i class="pi pi-check-circle"></i>
               <div>
-                <p>{{ highlight }}</p>
+                <p>{{ listing.description }}</p>
               </div>
             </div>
           </div>
@@ -237,7 +234,7 @@
 
         <!-- Right column with booking form -->
         <div class="booking-container">
-        <app-reservation-card [listingId]="listing.id"></app-reservation-card>
-          </div>
+          <app-reservation-card [listingId]="listing.id"></app-reservation-card>
+        </div>
         </div>
       </div>

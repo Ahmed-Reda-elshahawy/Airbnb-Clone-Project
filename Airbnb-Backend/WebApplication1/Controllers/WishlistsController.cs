@@ -134,7 +134,7 @@ namespace WebApplication1.Controllers
             var currentUser = await irepo.GetCurrentUserAsync();
             if (currentUser == null)
             {
-                return Guid.Parse("40512ba8-7c83-41b1-bda6-415eba1909cd");
+                return Guid.Parse("c9e2c5a8-5460-4496-8f45-810b91abd2ba");
             }
             Guid userId = currentUser.Id;
             return userId;

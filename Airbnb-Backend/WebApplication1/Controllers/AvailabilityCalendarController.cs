@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApplication1.DTOS.Authentication;
 using WebApplication1.DTOS.AvailabilityCalendar;
 using WebApplication1.DTOS.Listing;
 using WebApplication1.Interfaces;
@@ -31,7 +32,7 @@ namespace WebApplication1.Controllers
 
         #region Initialize availability
         [HttpPost("listings/{listingId}/init")]
-        //[Authorize]
+        [Authorize(Roles = $"{UserRoles.Host}")]
         public async Task<IActionResult> InitializeAvailability(Guid listingId, [FromBody] InitAvailabilityCalendarDTO dto)
         {
             try
@@ -53,7 +54,7 @@ namespace WebApplication1.Controllers
         #region Set availability with Start and End date
 
         [HttpPost("listings/{listingId}")]
-        //[Authorize]
+        [Authorize(Roles = $"{UserRoles.Host}")]
         public async Task<IActionResult> SetAvailability(Guid listingId, SetAvailabilityCalendarDTO dto)
         {
             if (dto.StartDate == default)
@@ -185,7 +186,7 @@ namespace WebApplication1.Controllers
 
         #region Update Methods
         [HttpPut("listings/{listingId}/date/{date}")]
-        //[Authorize]
+        [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Host}")]
         public async Task<ActionResult<AvailabilityCalendar>> UpdateAvailability(Guid listingId, DateTime date, [FromBody] UpdateAvailabilityCalendarDTO dto)
         {
             if (dto == null)
@@ -196,7 +197,7 @@ namespace WebApplication1.Controllers
             return updated ? Ok("Updated successfully.") : NotFound("Availability entry not found.");
         }
         [HttpPost("listings/{listingId}/batch")]
-        //[Authorize]
+        [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Host}")]
         public async Task<IActionResult> BatchUpdate(Guid listingId, [FromBody] List<SetAvailabilityCalendarDTO> updates)
         {
             if (updates.Count == 0) return BadRequest("No entries to update.");

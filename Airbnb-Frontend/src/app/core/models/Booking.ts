@@ -38,8 +38,8 @@ export interface Booking2 {
 }
 export interface BookingRequest {
   listingId: string;
-  checkInDate: Date;
-  checkOutDate: Date;
+  checkInDate: string | Date;
+  checkOutDate: string | Date;
   guestsCount: number;
   specialRequests?: string;
 }

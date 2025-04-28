@@ -9,6 +9,7 @@ using Stripe;
 using Stripe.Checkout;
 using WebApplication1.Configurations;
 using WebApplication1.DTOS.Amenity;
+using WebApplication1.DTOS.Authentication;
 using WebApplication1.DTOS.Payment;
 using WebApplication1.Interfaces;
 using WebApplication1.Models;
@@ -36,7 +37,7 @@ namespace WebApplication1.Controllers
 
         #region Create Payment Intent
         [HttpPost("booking/{bookingId}/create-intent")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Guest}")]
         public async Task<IActionResult> CreatePaymentIntent(Guid bookingId, [FromBody] PaymentIntentRequestDTO request)
         {
             try
@@ -75,7 +76,7 @@ namespace WebApplication1.Controllers
 
         #region Cancel Payment Intent
         [HttpPost("cancel-intent/{paymentIntentId}")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Guest}")]
         public async Task<IActionResult> CancelPaymentIntent(string paymentIntentId)
         {
             try
@@ -92,14 +93,14 @@ namespace WebApplication1.Controllers
 
         #region Get Methods
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Admin}")]
         public async Task<IActionResult> GetAllPayments([FromQuery] Dictionary<string, string> queryParams)
         {
             var payments = await _paymentRepository.GetAllAsync(queryParams);
             return Ok(payments);
         }
         [HttpGet("me")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Guest}")]
         public async Task<IActionResult> GetUserPayments()
         {
             var userId = _paymentRepository.GetCurrentUserId();
@@ -107,7 +108,7 @@ namespace WebApplication1.Controllers
             return Ok(payments);
         }
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Admin}")]
         public async Task<IActionResult> GetUserPaymentById(Guid id)
         {
             var payment = await _paymentRepository.GetByIDAsync(id);
@@ -120,7 +121,7 @@ namespace WebApplication1.Controllers
         #region Sessions
 
         [HttpPost("checkout-session/{bookingId}")]
-        //[Authorize]
+        [Authorize(Roles = $"{UserRoles.Guest}")]
         public async Task<IActionResult> CreateCheckoutSession(Guid bookingId, [FromBody] PaymentSessionRequestDTO dto)
         {
             try

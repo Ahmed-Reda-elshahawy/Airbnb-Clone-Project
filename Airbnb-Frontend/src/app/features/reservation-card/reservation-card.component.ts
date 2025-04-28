@@ -1,7 +1,18 @@
 import { Component, HostListener, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AvailabilityCalendarService } from '../../core/services/availability-calendar.service';
+import { DateRangePickerComponent } from '../date-range-picker/date-range-picker.component';
+import { DateRangeService } from '../../core/services/date-range.service';
+import { BookingService } from '../../core/services/booking.service';
+import { ListingsService } from '../../core/services/listings.service';
+import { Listing } from '../../core/models/Listing';
+import { Router } from '@angular/router';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { PaymentService } from '../../core/services/payment.service';
 
 interface GuestCounts {
   adults: number;
@@ -10,20 +21,44 @@ interface GuestCounts {
   pets: number;
 }
 
+interface PriceBreakdown {
+  nightlyRate: number;
+  nights: number;
+  subtotal: number;
+  serviceFee: number;
+  totalAmount: number;
+}
+
 @Component({
   selector: 'app-reservation-card',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    DateRangePickerComponent,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatNativeDateModule,
+    MatInputModule
+  ],
   templateUrl: './reservation-card.component.html',
   styleUrl: './reservation-card.component.css'
 })
 export class ReservationCardComponent implements OnInit {
   @Input() listingId!: string;
 
-  checkIn!: string;
-  checkOut!: string;
   isGuestPopupOpen: boolean = false;
-  availableDates: Array<{ date: string, isAvailable: boolean }> = [];
+  reservedDates: Date[] = [];
+  dateRangeErrors: string[] = [];
+  listing?: Listing;
+  priceBreakdown: PriceBreakdown = {
+    nightlyRate: 0,
+    nights: 0,
+    subtotal: 0,
+    serviceFee: 0,
+    totalAmount: 0
+  };
 
   guests: GuestCounts = {
     adults: 1,
@@ -32,59 +67,136 @@ export class ReservationCardComponent implements OnInit {
     pets: 0
   };
 
-  maxGuests = 4;
+  maxGuests: number = 1; // Default to 1 until we load the listing
+  selectedDateRange: { startDate: Date | null; endDate: Date | null } = {
+    startDate: null,
+    endDate: null
+  };
 
-  constructor(private availabilityService: AvailabilityCalendarService) {}
+  constructor(
+    private availabilityService: AvailabilityCalendarService,
+    private dateRangeService: DateRangeService,
+    private bookingService: BookingService,
+    private listingsService: ListingsService,
+    private paymentService: PaymentService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    console.log('Listing ID:', this.listingId);
     if (this.listingId) {
       this.loadAvailableDates();
+      this.setupDateRangeSubscription();
+      this.loadListingDetails();
     }
   }
 
-  getMinDate(): string {
-    if (this.availableDates.length > 0) {
-      return this.availableDates[0].date;
+  private loadListingDetails() {
+    this.listingsService.getListingById(this.listingId).subscribe({
+      next: (listing) => {
+        this.listing = listing;
+        this.maxGuests = listing.capacity; // Set maxGuests from listing capacity
+        this.priceBreakdown.nightlyRate = listing.pricePerNight;
+        this.priceBreakdown.serviceFee = listing.serviceFee;
+        this.updatePriceCalculation();
+      },
+      error: (error) => {
+        console.error('Error loading listing details:', error);
+      }
+    });
+  }
+
+  private updatePriceCalculation() {
+    if (this.selectedDateRange.startDate && this.selectedDateRange.endDate && this.listing) {
+      const nights = Math.ceil(
+        (this.selectedDateRange.endDate.getTime() - this.selectedDateRange.startDate.getTime()) /
+        (1000 * 60 * 60 * 24)
+      );
+
+      this.priceBreakdown.nights = nights;
+      this.priceBreakdown.subtotal = this.priceBreakdown.nightlyRate * nights;
+      this.priceBreakdown.totalAmount =
+        this.priceBreakdown.subtotal +
+        this.priceBreakdown.serviceFee;
     }
-    return new Date().toISOString().split('T')[0];
   }
 
-  getMinCheckoutDate(): string {
-    return this.checkIn || this.getMinDate();
+  private setupDateRangeSubscription() {
+    this.dateRangeService.startDate$.subscribe(date => {
+      if (date) {
+        this.selectedDateRange.startDate = date;
+        this.validateDateRange();
+      }
+    });
+
+    this.dateRangeService.endDate$.subscribe(date => {
+      if (date) {
+        this.selectedDateRange.endDate = date;
+        this.validateDateRange();
+      }
+    });
   }
 
-  loadAvailableDates() {
-    this.availabilityService.getAvailabilityCalendarOfListing(this.listingId)
-      .subscribe({
-        next: (dates) => {
-          console.log('Received dates:', dates);
-          this.availableDates = dates.map(date => ({
-            date: date.startDate.toISOString().split('T')[0],
-            isAvailable: date.isAvailable ?? false
-          })).sort((a, b) => a.date.localeCompare(b.date));
-          console.log('Processed dates:', this.availableDates);
-        },
-        error: (error) => {
-          console.error('Error loading available dates:', error);
-          const today = new Date();
-          const threeMonthsFromNow = new Date(today);
-          threeMonthsFromNow.setMonth(today.getMonth() + 3);
-
-          // Default dates if error
-          this.availableDates = [{
-            date: today.toISOString().split('T')[0],
-            isAvailable: true
-          }];
+  private validateDateRange() {
+    this.dateRangeErrors = [];
+    if (this.selectedDateRange.startDate && this.selectedDateRange.endDate) {
+      this.checkAvailability().then(() => {
+        if (this.dateRangeErrors.length === 0) {
+          this.updatePriceCalculation();
         }
       });
+    }
+  }
+
+  private loadAvailableDates() {
+    this.availabilityService.getAvailabilityCalendarOfListing(this.listingId).subscribe({
+      next: (dates) => {
+        // Filter only unavailable dates
+        this.reservedDates = dates
+          .filter(date => !date.isAvailable)
+          .map(date => new Date(date.date));
+      },
+      error: (error) => {
+        console.error('Error loading availability dates:', error);
+        this.dateRangeErrors.push('Error loading available dates');
+      }
+    });
+  }
+
+  private async checkAvailability(): Promise<void> {
+    if (!this.selectedDateRange.startDate || !this.selectedDateRange.endDate) {
+      return;
+    }
+
+    try {
+      const response = await this.availabilityService.checkAvailabilityOfListing(
+        this.listingId,
+        this.selectedDateRange.startDate,
+        this.selectedDateRange.endDate
+      ).toPromise();
+
+      if (!response?.isAvailable) {
+        this.dateRangeErrors.push('Selected dates are not available');
+        this.dateRangeService.setStartDate(null);
+        this.dateRangeService.setEndDate(null);
+      }
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      this.dateRangeErrors.push('Error checking date availability');
+    }
+  }
+
+  onDateRangeSelected(event: { startDate: Date, endDate: Date }) {
+    this.selectedDateRange = {
+      startDate: event.startDate,
+      endDate: event.endDate
+    };
+    this.validateDateRange();
   }
 
   toggleGuestPopup() {
     this.isGuestPopupOpen = !this.isGuestPopupOpen;
   }
 
-  // Method to handle guest count changes
   updateGuestCount(type: keyof GuestCounts, change: number) {
     const newCount = this.guests[type] + change;
     const totalGuests = this.getTotalGuests() + (type !== 'infants' ? change : 0);
@@ -125,48 +237,6 @@ export class ReservationCardComponent implements OnInit {
     return text;
   }
 
-  // Method to check if a date is available
-  isDateAvailable(date: string): boolean {
-    const foundDate = this.availableDates.find(d => d.date === date);
-    return foundDate ? foundDate.isAvailable : false;
-  }
-
-  // Method to check availability and proceed
-  checkAvailability() {
-    if (this.checkIn && this.checkOut) {
-      const startDate = new Date(this.checkIn);
-      const endDate = new Date(this.checkOut);
-
-      this.availabilityService.checkAvailabilityOfListing(this.listingId, startDate, endDate)
-        .subscribe({
-          next: (response) => {
-            const isAvailable = response.every(date => date.isAvailable);
-            if (isAvailable) {
-              console.log('Dates are available!', {
-                checkIn: this.checkIn,
-                checkOut: this.checkOut,
-                guests: this.guests
-              });
-              // TODO: Proceed with booking
-            } else {
-              alert('Selected dates are not available. Please choose different dates.');
-            }
-          },
-          error: (error) => {
-            console.error('Error checking availability:', error);
-            alert('Error checking availability. Please try again.');
-          }
-        });
-    }
-  }
-
-  closeGuestPopup(event: Event) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.guest-popup') && !target.closest('.guest-trigger')) {
-      this.isGuestPopupOpen = false;
-    }
-  }
-
   @HostListener('document:click', ['$event'])
   onClickOutside(event: Event) {
     if (this.isGuestPopupOpen) {
@@ -175,5 +245,84 @@ export class ReservationCardComponent implements OnInit {
         this.isGuestPopupOpen = false;
       }
     }
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  async reserveNow() {
+    if (!this.selectedDateRange.startDate || !this.selectedDateRange.endDate) {
+      this.dateRangeErrors = ['Please select check-in and check-out dates'];
+      return;
+    }
+
+    if (this.getTotalGuests() === 0) {
+      this.dateRangeErrors = ['Please select at least one guest'];
+      return;
+    }
+
+    if (this.getTotalGuests() > this.maxGuests) {
+      this.dateRangeErrors = [`Maximum ${this.maxGuests} guests allowed`];
+      return;
+    }
+
+    const bookingRequest = {
+      listingId: this.listingId,
+      checkInDate: this.formatDate(this.selectedDateRange.startDate),
+      checkOutDate: this.formatDate(this.selectedDateRange.endDate),
+      guestsCount: this.getTotalGuests(),
+      specialRequests: ''
+    };
+
+    console.log('Attempting to create booking:', bookingRequest);
+
+    this.bookingService.createBooking(bookingRequest).subscribe({
+      next: (booking) => {
+        console.log('Booking created successfully:', booking);
+        
+        // Create checkout session after successful booking
+        const paymentRequest = {
+          paymentType: 0, // Default payment type
+          paymentMethodId: 1 // Default payment method
+        };
+
+        this.paymentService.createCheckoutSession(booking.id, paymentRequest).subscribe({
+          next: (response) => {
+            // Redirect to Stripe checkout URL
+            window.location.href = response.url;
+          },
+          error: (error) => {
+            console.error('Error creating payment session:', error);
+            this.dateRangeErrors = ['Failed to initialize payment. Please try again.'];
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error creating booking:', error);
+        if (error instanceof Error) {
+          this.dateRangeErrors = [error.message];
+        } else if (error.error && typeof error.error === 'string') {
+          this.dateRangeErrors = [error.error];
+        } else if (error.message) {
+          this.dateRangeErrors = [error.message];
+        } else {
+          this.dateRangeErrors = ['Failed to create booking. Please try again.'];
+        }
+
+        // Reset date selection if dates are not available
+        if (error.message?.includes('not available') || error.error?.includes('not available')) {
+          this.dateRangeService.setStartDate(null);
+          this.dateRangeService.setEndDate(null);
+          this.selectedDateRange = {
+            startDate: null,
+            endDate: null
+          };
+        }
+      }
+    });
   }
 }
