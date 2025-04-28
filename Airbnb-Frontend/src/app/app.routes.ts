@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { hostGuard } from './core/guards/host.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { PaymentSuccessComponent } from './features/payment-success/payment-success.component';
+import { PaymentFailedComponent } from './features/payment-failed/payment-failed.component';
 
 export const routes: Routes = [
   { path: "", redirectTo: "home", pathMatch: 'full' },
@@ -33,5 +35,7 @@ export const routes: Routes = [
   {path:"Account", loadComponent:() => import('./features/account-settings/account-settings.component').then(m => m.AccountComponent), title:"Account"},
   { path: "conversations", loadComponent: () => import('./features/conversations/conversations.component').then(m => m.ConversationsComponent), title: "conversations", canActivate: [() => authGuard()] },
   {path:"Account/personal-info", loadComponent:() => import('./features/personal-info/personal-info.component').then(m => m.PersonalInfoComponent), title:"Personal-Info"},
+  { path: 'payment-success', component: PaymentSuccessComponent },
+  { path: 'payment-cancelled', component: PaymentFailedComponent },
   {path:"**", redirectTo:"home" , pathMatch:'full'  } // Wildcard route for a 404 page
 ];
