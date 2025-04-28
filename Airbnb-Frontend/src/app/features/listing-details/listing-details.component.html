@@ -1,4 +1,4 @@
-    <!-- listing-details.component.html -->
+<!-- listing-details.component.html -->
     <div class="listing-container">
       <!-- Header section -->
       <div class="listing-header">
@@ -237,7 +237,8 @@
 
         <!-- Right column with booking form -->
         <div class="booking-container">
-        <app-reservation-card [listingId]="listing.id"></app-reservation-card>
-          </div>
+          <app-reserve-card [listingId]="listing.id"></app-reserve-card>
+          <!-- <app-reservation-card [listingId]="listing.id"></app-reservation-card> -->
+        </div>
         </div>
       </div>

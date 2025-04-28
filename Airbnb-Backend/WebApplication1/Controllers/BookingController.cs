@@ -37,6 +37,7 @@ namespace WebApplication1.Controllers
 
         #region Post Methods
         [HttpPost]
+        [Authorize(Roles = $"{UserRoles.Guest},{UserRoles.Host}")]
         public async Task<ActionResult> CreateBooking([FromBody] CreateBookingDTO dto)
         {
             if (dto == null)

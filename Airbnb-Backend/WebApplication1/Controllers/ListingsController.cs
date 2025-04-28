@@ -140,7 +140,7 @@ namespace WebApplication1.Controllers
             }
         }
         [HttpPut("{listingId}/update-verification")]
-        [Authorize(Roles = $"{UserRoles.Admin}")]
+        [Authorize(Roles = $"{UserRoles.Admin}, {UserRoles.Host}")]
         public async Task<IActionResult> UpdateVerificationStatus(Guid listingId,[FromBody] UpdateVerificationStatusDTO dto)
         {
             var result = await _listingsRepository.UpdateVerificationStatusAsync(listingId, dto.VerificationStatusId);
@@ -154,7 +154,7 @@ namespace WebApplication1.Controllers
 
         #region Delete Method
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Host,Admin")]
+        [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Host}")]
         public async Task<ActionResult> DeleteListing(Guid id)
         {
             try

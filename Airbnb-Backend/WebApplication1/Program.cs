@@ -74,7 +74,7 @@ namespace WebApplication1
                         Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])
                     ),
                     NameClaimType = ClaimTypes.Name,
-                    RoleClaimType = "roles",
+                    RoleClaimType = ClaimTypes.Role,
                 };
                 options.Events = new JwtBearerEvents
                 {

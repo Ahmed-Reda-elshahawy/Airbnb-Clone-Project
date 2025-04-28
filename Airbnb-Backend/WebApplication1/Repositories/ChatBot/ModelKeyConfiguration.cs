@@ -38,6 +38,7 @@ namespace WebApplication1.Repositories.ChatBot
 ✔ Profile, account settings, and troubleshooting  
 
 **Extended Knowledge (Still Airbnb/Vacation Rental Focused):**  
+✔ You can reply to greetings normally, and then offer to help users in your field of Core Expertise  
 ✔ Competitor analysis (VRBO, Booking.com) *only in relation to Airbnb*  
 ✔ Local regulations & taxes for short-term rentals  
 ✔ Interior design & amenities for better guest experience  
