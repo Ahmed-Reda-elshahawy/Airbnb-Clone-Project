@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApplication1.DTOS.Authentication;
 using WebApplication1.DTOS.Listing;
 using WebApplication1.DTOS.Review;
 using WebApplication1.Interfaces;
@@ -31,7 +32,7 @@ namespace WebApplication1.Controllers
 
         #region Post Methods
         [HttpPost("bookings/{bookingId}")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Guest}")]
         public async Task<IActionResult> CreateReviewOnBooking(Guid bookingId, [FromBody] CreateReviewDTO dto)
         {
             if (dto == null)
@@ -56,7 +57,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost("{id}/host-reply")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Host}")]
         public async Task<IActionResult> AddHostReply(Guid id, [FromBody] HostReplyDTO dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.HostReply))
@@ -104,7 +105,7 @@ namespace WebApplication1.Controllers
             }
         }
         [HttpGet("users/{userId}")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Admin}")]
         public async Task<ActionResult<IEnumerable<GetReviewDTO>>> GetReviewsByUserID(Guid userId)
         {
             try
@@ -165,7 +166,7 @@ namespace WebApplication1.Controllers
 
         #region Update Methods
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Guest}")]
         public async Task<ActionResult<GetReviewDTO>> UpdateReview(Guid id, [FromBody] UpdateReviewDTO dto)
         {
             if (dto == null)
@@ -195,7 +196,7 @@ namespace WebApplication1.Controllers
 
         #region Delete Methods
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Host},{UserRoles.Guest}")]
         public async Task<ActionResult> DeleteReview(Guid id)
         {
             try

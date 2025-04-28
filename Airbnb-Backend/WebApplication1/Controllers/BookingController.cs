@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
+using WebApplication1.DTOS.Authentication;
 using WebApplication1.DTOS.Booking;
 using WebApplication1.DTOS.Listing;
 using WebApplication1.Interfaces;
@@ -36,7 +37,6 @@ namespace WebApplication1.Controllers
 
         #region Post Methods
         [HttpPost]
-        [Authorize]
         public async Task<ActionResult> CreateBooking([FromBody] CreateBookingDTO dto)
         {
             if (dto == null)
@@ -57,7 +57,7 @@ namespace WebApplication1.Controllers
 
         #region Get Methods
         [HttpGet]
-        [Authorize(Roles = "Admin, Host")]
+        [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Host}")]
         public async Task<ActionResult<IEnumerable<GetBookingDTO>>> GetAllBookings([FromQuery] Dictionary<string, string> queryParams)
         {
             var bookings = await _bookingRepository.GetAllAsync(queryParams);
@@ -65,7 +65,7 @@ namespace WebApplication1.Controllers
             return Ok(bookingsDTOs);
         }
         [HttpGet("me")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Guest}")]
         public async Task<ActionResult<IEnumerable<GetBookingDTO>>> GetUserBookings([FromQuery] Dictionary<string, string> queryParams)
         {
             var userId = _bookingRepository.GetCurrentUserId();
@@ -86,7 +86,7 @@ namespace WebApplication1.Controllers
             return Ok(bookingDTO);
         }
         [HttpGet("listings/{id}")]
-        [Authorize(Roles = "Admin, Host")]
+        [Authorize(Roles = $"{UserRoles.Admin},{UserRoles.Host}")]
         public async Task<ActionResult<IEnumerable<GetBookingDTO>>> GetListingBookings(Guid id)
         {
             var listing = await _listingsRepository.GetListingWithDetailsbyId(id);
@@ -100,7 +100,7 @@ namespace WebApplication1.Controllers
 
         #region Cancel Bookings
         [HttpPost("{bookingId}/cancel")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Guest}")]
         public async Task<IActionResult> CancelBooking(Guid bookingId, CancelBookingDTO request)
         {
             try
@@ -127,7 +127,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost("{bookingId}/expired")]
-        [Authorize]
+        [Authorize(Roles = $"{UserRoles.Guest}")]
         public async Task<IActionResult> CancelExpiredBookings(Guid bookingId)
         {
             try
