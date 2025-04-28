@@ -46,7 +46,9 @@ export class AvailabilityCalendarService {
   checkAvailabilityOfListing(listingId: string, startDate: Date, endDate: Date) {
     const formattedStartDate = startDate.toISOString().split('T')[0];
     const formattedEndDate = endDate.toISOString().split('T')[0];
-    return this.http.get<{ listingId: string, isAvailable: boolean }>(`${this.apiUrl}/AvailabilityCalendar/listings/${listingId}/isavailable?startDate=${formattedStartDate}&endDate=${formattedEndDate}`);
+    return this.http.get<{ listingId: string, isAvailable: boolean }>(
+      `${this.apiUrl}/AvailabilityCalendar/listings/${listingId}/isavailable?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
+    );
   }
 
   checkAvailabilityOfListingEmpty(listingId: string) {

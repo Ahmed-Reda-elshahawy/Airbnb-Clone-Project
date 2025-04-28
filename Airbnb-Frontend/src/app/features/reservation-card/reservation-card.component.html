@@ -1,168 +1,107 @@
 <div class="reservation-card">
-  <div class="booking-price">
-    <h2>${{ priceBreakdown.nightlyRate | number:'1.0-0' }} <span>night</span></h2>
-    <div class="booking-rating" *ngIf="listing?.averageRating">
-      <i class="fas fa-star"></i>
-      {{ listing?.averageRating | number:'1.1-1' }}
-    </div>
+  <div class="price-section">
+    <span class="price">${{ listing?.pricePerNight }}</span>
+    <span class="per-night">night</span>
   </div>
 
-  <!-- Date Range Picker -->
-  <div class="date-range-section">
-    <app-date-range-picker
-      [listingId]="listingId"
-      [selectedRange]="selectedDateRange"
-      (rangeSelected)="onDateRangeSelected($event)">
-    </app-date-range-picker>
+  <app-date-range-picker
+    [listingId]="listingId"
+    [selectedRange]="selectedDateRange"
+    [isOwner]="false"
+    (rangeSelected)="onDateRangeSelected($event)">
+  </app-date-range-picker>
 
-    <!-- Date Range Errors -->
-    <div *ngIf="dateRangeErrors.length > 0" class="mt-2">
-      <div *ngFor="let error of dateRangeErrors" class="text-sm text-red-600">
-        {{ error }}
+  <div *ngIf="dateRangeErrors.length > 0" class="error-messages">
+    <p *ngFor="let error of dateRangeErrors" class="error-message">{{ error }}</p>
+  </div>
+
+  <div class="guest-section">
+    <div class="guest-trigger" (click)="toggleGuestPopup()">
+      <div>
+        <div class="label">GUESTS</div>
+        <div class="selected-guests">{{ getGuestsText() }}</div>
       </div>
-    </div>
-  </div>
-
-  <!-- Guest Selection -->
-  <div class="guest-section relative">
-    <div class="guest-trigger cursor-pointer" (click)="toggleGuestPopup()">
-      <span class="text-gray-700">{{ getGuestsText() }}</span>
+      <i class="fas" [class.fa-chevron-up]="isGuestPopupOpen" [class.fa-chevron-down]="!isGuestPopupOpen"></i>
     </div>
 
-    <!-- Guest Popup -->
-    <div *ngIf="isGuestPopupOpen" class="guest-popup absolute bg-white shadow-lg rounded-lg p-4 w-full z-10">
-      <!-- Adults -->
-      <div class="flex items-center justify-between mb-4">
+    <div class="guest-popup" *ngIf="isGuestPopupOpen">
+      <!-- Guest counter sections -->
+      <div class="guest-type">
         <div>
-          <div class="font-medium">Adults</div>
-          <div class="text-sm text-gray-500">Age 13+</div>
+          <div class="guest-label">Adults</div>
+          <div class="guest-sublabel">Age 13+</div>
         </div>
-        <div class="flex items-center gap-3">
-          <button
-            [disabled]="guests.adults <= 1"
-            (click)="updateGuestCount('adults', -1)"
-            class="p-2 rounded-full border"
-            [class.opacity-50]="guests.adults <= 1">
-            -
-          </button>
+        <div class="counter">
+          <button [disabled]="guests.adults <= 1" (click)="updateGuestCount('adults', -1)">-</button>
           <span>{{ guests.adults }}</span>
-          <button
-            [disabled]="getTotalGuests() >= maxGuests"
-            (click)="updateGuestCount('adults', 1)"
-            class="p-2 rounded-full border"
-            [class.opacity-50]="getTotalGuests() >= maxGuests">
-            +
-          </button>
+          <button [disabled]="getTotalGuests() >= maxGuests" (click)="updateGuestCount('adults', 1)">+</button>
         </div>
       </div>
 
-      <!-- Children -->
-      <div class="flex items-center justify-between mb-4">
+      <div class="guest-type">
         <div>
-          <div class="font-medium">Children</div>
-          <div class="text-sm text-gray-500">Ages 2-12</div>
+          <div class="guest-label">Children</div>
+          <div class="guest-sublabel">Ages 2-12</div>
         </div>
-        <div class="flex items-center gap-3">
-          <button
-            [disabled]="guests.children <= 0"
-            (click)="updateGuestCount('children', -1)"
-            class="p-2 rounded-full border"
-            [class.opacity-50]="guests.children <= 0">
-            -
-          </button>
+        <div class="counter">
+          <button [disabled]="guests.children <= 0" (click)="updateGuestCount('children', -1)">-</button>
           <span>{{ guests.children }}</span>
-          <button
-            [disabled]="getTotalGuests() >= maxGuests"
-            (click)="updateGuestCount('children', 1)"
-            class="p-2 rounded-full border"
-            [class.opacity-50]="getTotalGuests() >= maxGuests">
-            +
-          </button>
+          <button [disabled]="getTotalGuests() >= maxGuests" (click)="updateGuestCount('children', 1)">+</button>
         </div>
       </div>
 
-      <!-- Infants -->
-      <div class="flex items-center justify-between mb-4">
+      <div class="guest-type">
         <div>
-          <div class="font-medium">Infants</div>
-          <div class="text-sm text-gray-500">Under 2</div>
+          <div class="guest-label">Infants</div>
+          <div class="guest-sublabel">Under 2</div>
         </div>
-        <div class="flex items-center gap-3">
-          <button
-            [disabled]="guests.infants <= 0"
-            (click)="updateGuestCount('infants', -1)"
-            class="p-2 rounded-full border"
-            [class.opacity-50]="guests.infants <= 0">
-            -
-          </button>
+        <div class="counter">
+          <button [disabled]="guests.infants <= 0" (click)="updateGuestCount('infants', -1)">-</button>
           <span>{{ guests.infants }}</span>
-          <button
-            [disabled]="guests.infants >= 5"
-            (click)="updateGuestCount('infants', 1)"
-            class="p-2 rounded-full border"
-            [class.opacity-50]="guests.infants >= 5">
-            +
-          </button>
+          <button [disabled]="guests.infants >= 5" (click)="updateGuestCount('infants', 1)">+</button>
         </div>
       </div>
 
-      <!-- Pets -->
-      <div class="flex items-center justify-between mb-4">
+      <div class="guest-type">
         <div>
-          <div class="font-medium">Pets</div>
+          <div class="guest-label">Pets</div>
         </div>
-        <div class="flex items-center gap-3">
-          <button
-            [disabled]="guests.pets <= 0"
-            (click)="updateGuestCount('pets', -1)"
-            class="p-2 rounded-full border"
-            [class.opacity-50]="guests.pets <= 0">
-            -
-          </button>
+        <div class="counter">
+          <button [disabled]="guests.pets <= 0" (click)="updateGuestCount('pets', -1)">-</button>
           <span>{{ guests.pets }}</span>
-          <button
-            [disabled]="guests.pets >= 5"
-            (click)="updateGuestCount('pets', 1)"
-            class="p-2 rounded-full border"
-            [class.opacity-50]="guests.pets >= 5">
-            +
-          </button>
+          <button [disabled]="guests.pets >= 5" (click)="updateGuestCount('pets', 1)">+</button>
         </div>
       </div>
 
-      <div class="mt-4 text-sm text-gray-500">
-        This place has a maximum of {{ maxGuests }} guests, not counting infants
+      <div *ngIf="getTotalGuests() >= maxGuests" class="mt-4 text-sm text-red-500">
+        Maximum {{ maxGuests }} guests allowed for this property
       </div>
     </div>
   </div>
 
-  <!-- Price Breakdown -->
-  <div class="price-breakdown mt-6" *ngIf="selectedDateRange.startDate && selectedDateRange.endDate">
-    <div class="text-gray-600 flex justify-between mb-3">
-      <span>${{ priceBreakdown.nightlyRate | number:'1.0-0' }} × {{ priceBreakdown.nights }} nights</span>
-      <span>${{ priceBreakdown.subtotal | number:'1.0-0' }}</span>
+  <div class="price-breakdown" *ngIf="selectedDateRange.startDate && selectedDateRange.endDate">
+    <div class="breakdown-item">
+      <span>${{ priceBreakdown.nightlyRate }} x {{ priceBreakdown.nights }} nights</span>
+      <span>${{ priceBreakdown.subtotal }}</span>
     </div>
-    <div class="text-gray-600 flex justify-between mb-3">
+    <div class="breakdown-item">
       <span>Service fee</span>
-      <span>${{ priceBreakdown.serviceFee | number:'1.0-0' }}</span>
+      <span>${{ priceBreakdown.serviceFee }}</span>
     </div>
-    <div class="text-gray-600 flex justify-between mb-3">
+    <div class="breakdown-item">
       <span>Taxes</span>
-      <span>${{ priceBreakdown.taxes | number:'1.0-0' }}</span>
+      <span>${{ priceBreakdown.taxes }}</span>
     </div>
-    <div class="border-t pt-4 mt-4">
-      <div class="font-semibold flex justify-between">
-        <span>Total</span>
-        <span>${{ priceBreakdown.totalAmount | number:'1.0-0' }}</span>
-      </div>
+    <div class="breakdown-total">
+      <span>Total</span>
+      <span>${{ priceBreakdown.totalAmount }}</span>
     </div>
   </div>
 
-  <!-- Reserve Button -->
   <button
-    class="w-full mt-4 bg-rose-600 text-white py-3 rounded-lg font-medium hover:bg-rose-700 transition-colors"
-    [disabled]="dateRangeErrors.length > 0 || !selectedDateRange.startDate || !selectedDateRange.endDate"
-    (click)="reserveNow()">
+    class="reserve-button"
+    (click)="reserveNow()"
+    [disabled]="!selectedDateRange.startDate || !selectedDateRange.endDate || dateRangeErrors.length > 0">
     Reserve
   </button>
 </div>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AvailabilityCalendarService } from '../../core/services/availability-calendar.service';
+import { AvailabilityCalendar } from '../../core/models/AvailabilityCalendar';
 
 interface GuestCounts {
   adults: number;
@@ -56,9 +57,9 @@ export class ReserveCardComponent implements OnInit {
   loadAvailableDates() {
     this.availabilityService.getAvailabilityCalendarOfListing(this.listingId)
       .subscribe({
-        next: (dates) => {
+        next: (dates: AvailabilityCalendar[]) => {
           this.availableDates = dates.map(date => ({
-            date: date.startDate!.toISOString().split('T')[0],
+            date: new Date(date.date).toISOString().split('T')[0],
             isAvailable: date.isAvailable ?? false
           })).sort((a, b) => a.date.localeCompare(b.date));
         },
@@ -73,7 +74,7 @@ export class ReserveCardComponent implements OnInit {
     if (new Date(date) < new Date(this.minDate)) {
       return false;
     }
-    
+
     // Check in availability calendar
     const foundDate = this.availableDates.find(d => d.date === date);
     return foundDate ? foundDate.isAvailable : false;
@@ -88,10 +89,9 @@ export class ReserveCardComponent implements OnInit {
       // Validate date range
       this.availabilityService.checkAvailabilityOfListing(this.listingId, startDate, endDate)
         .subscribe({
-          next: (response) => {
-            const isAvailable = response.every(date => date.isAvailable);
-            if (!isAvailable) {
-              alert('One or more dates in your selection are not available. Please choose different dates.');
+          next: (response: { listingId: string; isAvailable: boolean }) => {
+            if (!response.isAvailable) {
+              alert('The selected dates are not available. Please choose different dates.');
               this.checkOut = '';
             }
           },
@@ -144,7 +144,7 @@ export class ReserveCardComponent implements OnInit {
   getGuestsText(): string {
     const total = this.getTotalGuests();
     let text = `${total} guest${total !== 1 ? 's' : ''}`;
-    
+
     if (this.guests.infants > 0) {
       text += `, ${this.guests.infants} infant${this.guests.infants !== 1 ? 's' : ''}`;
     }
