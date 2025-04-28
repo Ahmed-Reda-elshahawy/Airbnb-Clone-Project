@@ -12,6 +12,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
+import { PaymentService } from '../../core/services/payment.service';
 
 interface GuestCounts {
   adults: number;
@@ -25,7 +26,6 @@ interface PriceBreakdown {
   nights: number;
   subtotal: number;
   serviceFee: number;
-  taxes: number;
   totalAmount: number;
 }
 
@@ -57,7 +57,6 @@ export class ReservationCardComponent implements OnInit {
     nights: 0,
     subtotal: 0,
     serviceFee: 0,
-    taxes: 0,
     totalAmount: 0
   };
 
@@ -79,6 +78,7 @@ export class ReservationCardComponent implements OnInit {
     private dateRangeService: DateRangeService,
     private bookingService: BookingService,
     private listingsService: ListingsService,
+    private paymentService: PaymentService,
     private router: Router
   ) {}
 
@@ -114,11 +114,9 @@ export class ReservationCardComponent implements OnInit {
 
       this.priceBreakdown.nights = nights;
       this.priceBreakdown.subtotal = this.priceBreakdown.nightlyRate * nights;
-      this.priceBreakdown.taxes = this.priceBreakdown.subtotal * 0.1; // Assuming 10% tax
       this.priceBreakdown.totalAmount =
         this.priceBreakdown.subtotal +
-        this.priceBreakdown.serviceFee +
-        this.priceBreakdown.taxes;
+        this.priceBreakdown.serviceFee;
     }
   }
 
@@ -285,10 +283,21 @@ export class ReservationCardComponent implements OnInit {
     this.bookingService.createBooking(bookingRequest).subscribe({
       next: (booking) => {
         console.log('Booking created successfully:', booking);
-        this.router.navigate(['/reservation'], {
-          queryParams: {
-            bookingId: booking.id,
-            totalAmount: this.priceBreakdown.totalAmount
+        
+        // Create checkout session after successful booking
+        const paymentRequest = {
+          paymentType: 0, // Default payment type
+          paymentMethodId: 1 // Default payment method
+        };
+
+        this.paymentService.createCheckoutSession(booking.id, paymentRequest).subscribe({
+          next: (response) => {
+            // Redirect to Stripe checkout URL
+            window.location.href = response.url;
+          },
+          error: (error) => {
+            console.error('Error creating payment session:', error);
+            this.dateRangeErrors = ['Failed to initialize payment. Please try again.'];
           }
         });
       },
