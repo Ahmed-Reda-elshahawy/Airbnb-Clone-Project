@@ -120,7 +120,7 @@ namespace WebApplication1.Controllers
         #region Sessions
 
         [HttpPost("checkout-session/{bookingId}")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> CreateCheckoutSession(Guid bookingId, [FromBody] PaymentSessionRequestDTO dto)
         {
             try

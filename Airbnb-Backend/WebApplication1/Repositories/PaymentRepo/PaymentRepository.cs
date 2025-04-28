@@ -92,6 +92,18 @@ namespace WebApplication1.Repositories.Payment
         }
         #endregion
 
+        #region Get refund amount
+        public async Task<decimal> GetRefundAmountAsync(Guid bookingId)
+        {
+            var payment = await GetLatestSuccessfulPaymentWithPolicyAsync(bookingId);
+            var policy = payment.Booking.Listing.CancellationPolicy;
+            var refundPercentage = CalculateRefundPercentage(payment.Booking, policy);
+            if (refundPercentage == 0)
+                throw new InvalidOperationException("Refund not allowed based on the policy.");
+            return (long)(payment.Amount * refundPercentage);
+        }
+        #endregion
+
         #region Refund Payment
         public async Task RefundBookingPaymentAsync(Booking booking)
         {

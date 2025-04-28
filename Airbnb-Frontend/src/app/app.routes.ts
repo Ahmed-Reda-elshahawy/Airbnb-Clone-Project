@@ -33,5 +33,6 @@ export const routes: Routes = [
   {path:"Account", loadComponent:() => import('./features/account-settings/account-settings.component').then(m => m.AccountComponent), title:"Account"},
   { path: "conversations", loadComponent: () => import('./features/conversations/conversations.component').then(m => m.ConversationsComponent), title: "conversations", canActivate: [() => authGuard()] },
   {path:"Account/personal-info", loadComponent:() => import('./features/personal-info/personal-info.component').then(m => m.PersonalInfoComponent), title:"Personal-Info"},
-  {path:"**", redirectTo:"home" , pathMatch:'full'  } // Wildcard route for a 404 page
+  {path:"Account/MyReservtions", loadComponent:() => import('./features/guest-reservations/guest-reservations.component').then(m => m.GuestReservationsComponent), title:"Guest-Reservations"},
+  {path:"**", redirectTo:"home" , pathMatch:'full' },// Wildcard route for a 404 page
 ];

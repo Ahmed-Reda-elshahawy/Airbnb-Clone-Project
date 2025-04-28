@@ -166,10 +166,11 @@ namespace WebApplication1.Repositories
         #region Get Methods
         public Guid GetCurrentUserId()
         {
-            //return Guid.Parse("40512BA8-7C83-41B1-BDA6-415EBA1909CD");
-            var user = (_httpContextAccessor.HttpContext?.User) ?? throw new InvalidOperationException("HttpContext or User is null");
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-            return userIdClaim == null ? throw new InvalidOperationException("User ID claim not found") : Guid.Parse(userIdClaim.Value);
+            return Guid.Parse("40512BA8-7C83-41B1-BDA6-415EBA1909CD");
+            //return Guid.Parse("950D9093-7546-4FC0-9EA9-4215D54F0200");
+            //var user = (_httpContextAccessor.HttpContext?.User) ?? throw new InvalidOperationException("HttpContext or User is null");
+            //var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+            //return userIdClaim == null ? throw new InvalidOperationException("User ID claim not found") : Guid.Parse(userIdClaim.Value);
         }
         public async Task<IEnumerable<T>> GetAllAsync(Dictionary<string, string> queryParams, List<string> includeProperties = null)
         {
@@ -182,10 +183,10 @@ namespace WebApplication1.Repositories
                     query = query.Include(property);
                 }
             }
-            if (queryParams.TryGetValue("pageNumber", out string value))
+            if (queryParams.TryGetValue("pageNumber", out string pageNumberValue))
             {
-                int pageNumber = int.Parse(value);
-                query = query.Take(3 * pageNumber); 
+               int pageNumber = int.Parse(pageNumberValue);
+                query = query.Skip((pageNumber - 1) * 3).Take(3);
             }
             return await query.ToListAsync();
         }

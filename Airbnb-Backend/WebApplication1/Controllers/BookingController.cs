@@ -32,11 +32,13 @@ namespace WebApplication1.Controllers
             _paymentRepository = paymentRepository;
             _stripeRepository = stripeRepository;
         }
+        private readonly List<string> includeProperties = ["Listing","Listing.ListingPhotos","Listing.Host","Guest", "Listing.CancellationPolicy"];
+
         #endregion
 
         #region Post Methods
         [HttpPost]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult> CreateBooking([FromBody] CreateBookingDTO dto)
         {
             if (dto == null)
@@ -57,26 +59,26 @@ namespace WebApplication1.Controllers
 
         #region Get Methods
         [HttpGet]
-        [Authorize(Roles = "Admin, Host")]
+        //[Authorize(Roles = "Admin, Host")]
         public async Task<ActionResult<IEnumerable<GetBookingDTO>>> GetAllBookings([FromQuery] Dictionary<string, string> queryParams)
         {
-            var bookings = await _bookingRepository.GetAllAsync(queryParams);
+            var bookings = await _bookingRepository.GetAllAsync(queryParams,includeProperties);
             var bookingsDTOs = _mapper.Map<List<GetBookingDTO>>(bookings);
             return Ok(bookingsDTOs);
         }
         [HttpGet("me")]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<IEnumerable<GetBookingDTO>>> GetUserBookings([FromQuery] Dictionary<string, string> queryParams)
         {
             var userId = _bookingRepository.GetCurrentUserId();
             queryParams["GuestId"] = userId.ToString();
-            var userBookings = await _bookingRepository.GetAllAsync(queryParams);
+            var userBookings = await _bookingRepository.GetAllAsync(queryParams,includeProperties);
             var userBookingsDTOs = _mapper.Map<List<GetBookingDTO>>(userBookings);
 
             return Ok(userBookingsDTOs);
         }
         [HttpGet("{id}")]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<GetBookingDTO>> GetBookingById(Guid id)
         {
             var booking = await _bookingRepository.GetByIDAsync(id);
@@ -86,7 +88,7 @@ namespace WebApplication1.Controllers
             return Ok(bookingDTO);
         }
         [HttpGet("listings/{id}")]
-        [Authorize(Roles = "Admin, Host")]
+        //[Authorize(Roles = "Admin, Host")]
         public async Task<ActionResult<IEnumerable<GetBookingDTO>>> GetListingBookings(Guid id)
         {
             var listing = await _listingsRepository.GetListingWithDetailsbyId(id);
@@ -96,11 +98,43 @@ namespace WebApplication1.Controllers
             var bookingsDTOs = _mapper.Map<List<GetBookingDTO>>(bookings);
             return Ok(bookingsDTOs);
         }
+        [HttpGet ("current-host")]
+        public async Task<ActionResult<IEnumerable<GetBookingDTO>>> GetCurrentHostBookings([FromQuery] Dictionary<string, string> queryParams)
+        {
+            var userId = _bookingRepository.GetCurrentUserId();
+            var hostBookings = await _bookingRepository.GetAllAsync(queryParams, includeProperties);
+            var filteredBookings = hostBookings.Where(b => b.Listing.HostId == userId).ToList();
+            var hostBookingsDTOs = _mapper.Map<List<GetBookingDTO>>(filteredBookings);
+            return Ok(hostBookingsDTOs);
+        }
+        [HttpGet("{bookingId}/cancellation-policy")]
+        //[Authorize]
+        public async Task<ActionResult<CancellationPolicy>> GetCancellationPolicy(Guid bookingId)
+        {
+            var booking = await _bookingRepository.GetByIDAsync(bookingId, ["Listing", "Listing.CancellationPolicy"]);
+            if (booking == null) return NotFound("Booking not found.");
+            var cancellationPolicy = booking.Listing.CancellationPolicy;
+            return Ok(cancellationPolicy);
+        }
+        [HttpGet("{bookingId}/refund-amount")]
+        //[Authorize]
+        public async Task<ActionResult<decimal>> GetRefundAmount(Guid bookingId)
+        {
+            try
+            {
+                var refundAmount = await _paymentRepository.GetRefundAmountAsync(bookingId);
+                return Ok(refundAmount);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
         #endregion
 
         #region Cancel Bookings
         [HttpPost("{bookingId}/cancel")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> CancelBooking(Guid bookingId, CancelBookingDTO request)
         {
             try

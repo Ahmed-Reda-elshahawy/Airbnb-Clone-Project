@@ -73,8 +73,7 @@
 //     valueRating: number;
 //   }[];
 
-// }
-
+import { CancellationPolicy } from "./CancellationPolicy";
 
 export interface Host {
   id: string;
@@ -85,16 +84,6 @@ export interface Host {
   isHost: boolean;
   isVerified: boolean;
 }
-
-export interface CancellationPolicy {
-  id: number;
-  name: string;
-  description: string;
-  fullRefundDays: number | null;
-  partialRefundDays: number | null;
-  partialRefundPercentage: number | null;
-}
-
 export interface Listing {
   id: string;
   host: Host;
