@@ -1,6 +1,6 @@
 import { Component, HostListener, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AvailabilityCalendarService } from '../../core/services/availability-calendar.service';
 import { DateRangePickerComponent } from '../date-range-picker/date-range-picker.component';
 import { DateRangeService } from '../../core/services/date-range.service';
@@ -8,6 +8,10 @@ import { BookingService } from '../../core/services/booking.service';
 import { ListingsService } from '../../core/services/listings.service';
 import { Listing } from '../../core/models/Listing';
 import { Router } from '@angular/router';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
 
 interface GuestCounts {
   adults: number;
@@ -28,7 +32,16 @@ interface PriceBreakdown {
 @Component({
   selector: 'app-reservation-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, DateRangePickerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    DateRangePickerComponent,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatNativeDateModule,
+    MatInputModule
+  ],
   templateUrl: './reservation-card.component.html',
   styleUrl: './reservation-card.component.css'
 })
@@ -55,7 +68,7 @@ export class ReservationCardComponent implements OnInit {
     pets: 0
   };
 
-  maxGuests = 4;
+  maxGuests: number = 1; // Default to 1 until we load the listing
   selectedDateRange: { startDate: Date | null; endDate: Date | null } = {
     startDate: null,
     endDate: null
@@ -81,6 +94,7 @@ export class ReservationCardComponent implements OnInit {
     this.listingsService.getListingById(this.listingId).subscribe({
       next: (listing) => {
         this.listing = listing;
+        this.maxGuests = listing.capacity; // Set maxGuests from listing capacity
         this.priceBreakdown.nightlyRate = listing.pricePerNight;
         this.priceBreakdown.serviceFee = listing.serviceFee;
         this.updatePriceCalculation();
@@ -127,13 +141,18 @@ export class ReservationCardComponent implements OnInit {
   private validateDateRange() {
     this.dateRangeErrors = [];
     if (this.selectedDateRange.startDate && this.selectedDateRange.endDate) {
-      this.checkAvailability();
+      this.checkAvailability().then(() => {
+        if (this.dateRangeErrors.length === 0) {
+          this.updatePriceCalculation();
+        }
+      });
     }
   }
 
   private loadAvailableDates() {
     this.availabilityService.getAvailabilityCalendarOfListing(this.listingId).subscribe({
       next: (dates) => {
+        // Filter only unavailable dates
         this.reservedDates = dates
           .filter(date => !date.isAvailable)
           .map(date => new Date(date.date));
@@ -145,23 +164,26 @@ export class ReservationCardComponent implements OnInit {
     });
   }
 
-  checkAvailability() {
-    if (this.selectedDateRange.startDate && this.selectedDateRange.endDate) {
-      this.availabilityService.checkAvailabilityOfListing(
+  private async checkAvailability(): Promise<void> {
+    if (!this.selectedDateRange.startDate || !this.selectedDateRange.endDate) {
+      return;
+    }
+
+    try {
+      const response = await this.availabilityService.checkAvailabilityOfListing(
         this.listingId,
         this.selectedDateRange.startDate,
         this.selectedDateRange.endDate
-      ).subscribe({
-        next: (response) => {
-          if (!response.isAvailable) {
-            this.dateRangeErrors.push('Selected dates are not available');
-          }
-        },
-        error: (error) => {
-          console.error('Error checking availability:', error);
-          this.dateRangeErrors.push('Error checking date availability');
-        }
-      });
+      ).toPromise();
+
+      if (!response?.isAvailable) {
+        this.dateRangeErrors.push('Selected dates are not available');
+        this.dateRangeService.setStartDate(null);
+        this.dateRangeService.setEndDate(null);
+      }
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      this.dateRangeErrors.push('Error checking date availability');
     }
   }
 
@@ -171,7 +193,6 @@ export class ReservationCardComponent implements OnInit {
       endDate: event.endDate
     };
     this.validateDateRange();
-    this.updatePriceCalculation();
   }
 
   toggleGuestPopup() {
@@ -228,22 +249,42 @@ export class ReservationCardComponent implements OnInit {
     }
   }
 
-  reserveNow() {
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  async reserveNow() {
     if (!this.selectedDateRange.startDate || !this.selectedDateRange.endDate) {
-      this.dateRangeErrors.push('Please select check-in and check-out dates');
+      this.dateRangeErrors = ['Please select check-in and check-out dates'];
+      return;
+    }
+
+    if (this.getTotalGuests() === 0) {
+      this.dateRangeErrors = ['Please select at least one guest'];
+      return;
+    }
+
+    if (this.getTotalGuests() > this.maxGuests) {
+      this.dateRangeErrors = [`Maximum ${this.maxGuests} guests allowed`];
       return;
     }
 
     const bookingRequest = {
       listingId: this.listingId,
-      checkInDate: this.selectedDateRange.startDate,
-      checkOutDate: this.selectedDateRange.endDate,
+      checkInDate: this.formatDate(this.selectedDateRange.startDate),
+      checkOutDate: this.formatDate(this.selectedDateRange.endDate),
       guestsCount: this.getTotalGuests(),
       specialRequests: ''
     };
 
+    console.log('Attempting to create booking:', bookingRequest);
+
     this.bookingService.createBooking(bookingRequest).subscribe({
       next: (booking) => {
+        console.log('Booking created successfully:', booking);
         this.router.navigate(['/reservation'], {
           queryParams: {
             bookingId: booking.id,
@@ -253,7 +294,25 @@ export class ReservationCardComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error creating booking:', error);
-        this.dateRangeErrors.push('Failed to create booking. Please try again.');
+        if (error instanceof Error) {
+          this.dateRangeErrors = [error.message];
+        } else if (error.error && typeof error.error === 'string') {
+          this.dateRangeErrors = [error.error];
+        } else if (error.message) {
+          this.dateRangeErrors = [error.message];
+        } else {
+          this.dateRangeErrors = ['Failed to create booking. Please try again.'];
+        }
+
+        // Reset date selection if dates are not available
+        if (error.message?.includes('not available') || error.error?.includes('not available')) {
+          this.dateRangeService.setStartDate(null);
+          this.dateRangeService.setEndDate(null);
+          this.selectedDateRange = {
+            startDate: null,
+            endDate: null
+          };
+        }
       }
     });
   }

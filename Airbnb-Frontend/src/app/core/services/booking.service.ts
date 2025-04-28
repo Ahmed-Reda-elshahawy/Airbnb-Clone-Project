@@ -25,45 +25,65 @@ export class BookingService {
   }
 
   getBookingById(bookingId: string) {
-    return this.http.get<Booking>(`${this.apiUrl}/Bookings/${bookingId}`);
+    return this.http.get<Booking>(`${this.apiUrl}/Booking/${bookingId}`);
   }
 
   getBookingsByListingId(listingId: string) {
-    return this.http.get<Booking[]>(`${this.apiUrl}/Bookings/listings/${listingId}`);
+    return this.http.get<Booking[]>(`${this.apiUrl}/Booking/listings/${listingId}`);
   }
 
   getBookingsByGuestId(guestId: string) {
-    return this.http.get<Booking[]>(`${this.apiUrl}/Bookings/guests/${guestId}`);
+    return this.http.get<Booking[]>(`${this.apiUrl}/Booking/guests/${guestId}`);
   }
 
   createBooking(bookingRequest: BookingRequest): Observable<Booking> {
-    // First mark the dates as unavailable in the availability calendar
-    return this.availabilityCalendarService.setAvailabilityCalendarBatch(bookingRequest.listingId, [{
-      startDate: bookingRequest.checkInDate,
-      endDate: bookingRequest.checkOutDate,
-      isAvailable: false
-    }]).pipe(
-      // Then create the booking
-      switchMap(() => this.http.post<Booking>(`${this.apiUrl}/Bookings`, bookingRequest)),
-      // If booking fails, make the dates available again
-      tap({
-        error: (error) => {
-          this.availabilityCalendarService.setAvailabilityCalendarBatch(bookingRequest.listingId, [{
-            startDate: bookingRequest.checkInDate,
-            endDate: bookingRequest.checkOutDate,
-            isAvailable: true
-          }]).subscribe();
+    // Format dates exactly as YYYY-MM-DD
+    const formatDate = (date: Date | string): string => {
+      if (typeof date === 'string') return date;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const formattedRequest = {
+      listingId: bookingRequest.listingId,
+      checkInDate: formatDate(bookingRequest.checkInDate),
+      checkOutDate: formatDate(bookingRequest.checkOutDate),
+      guestsCount: bookingRequest.guestsCount,
+      specialRequests: bookingRequest.specialRequests || ''
+    };
+
+    return this.availabilityCalendarService.checkAvailabilityOfListing(
+      bookingRequest.listingId,
+      bookingRequest.checkInDate instanceof Date ? bookingRequest.checkInDate : new Date(bookingRequest.checkInDate),
+      bookingRequest.checkOutDate instanceof Date ? bookingRequest.checkOutDate : new Date(bookingRequest.checkOutDate)
+    ).pipe(
+      switchMap(response => {
+        if (!response.isAvailable) {
+          throw new Error('Selected dates are not available');
         }
+
+        return this.http.post<Booking>(`${this.apiUrl}/Booking`, formattedRequest)
+          .pipe(
+            catchError(error => {
+              console.error('Booking creation failed:', error);
+              if (error.status === 500 && error.error) {
+                throw new Error(error.error);
+              }
+              throw error;
+            })
+          );
       })
     );
   }
 
   cancelBooking(bookingId: string) {
-    return this.http.delete(`${this.apiUrl}/Bookings/${bookingId}`);
+    return this.http.delete(`${this.apiUrl}/Booking/${bookingId}`);
   }
 
   updateBooking(bookingId: string, booking: Partial<Booking>) {
-    return this.http.put(`${this.apiUrl}/Bookings/${bookingId}`, booking);
+    return this.http.put(`${this.apiUrl}/Booking/${bookingId}`, booking);
   }
 
   makeABooking(bookingRequest: BookingRequest) {
@@ -77,7 +97,7 @@ export class BookingService {
       }),
       catchError((error) => {
         console.log('Error cancelling booking:', error);
-        return of(null); // Handle the error as needed
+        return of(null);
       })
     );
   }

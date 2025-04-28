@@ -17,12 +17,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Guest popup styles */
 .guest-popup {
-  margin-top: 0.5rem;
-  border: 1px solid #E5E7EB;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  animation: slideDown 0.2s ease-out;
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }
 
 /* Button hover and active states */
@@ -72,10 +77,12 @@ button[class*="bg-rose-600"][disabled] {
 
 /* Reservation card styles */
 .reservation-card {
-  background-color: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  background: white;
 }
 
 .booking-price {
@@ -112,34 +119,149 @@ button[class*="bg-rose-600"][disabled] {
 }
 
 .guest-section {
-  border: 1px solid #D1D5DB;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  margin-bottom: 1.5rem;
-}
-
-.guest-section:hover {
-  border-color: #9CA3AF;
-}
-
-.guest-section:focus-within {
-  border-color: #F43F5E;
-  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.1);
+  margin: 20px 0;
+  position: relative;
 }
 
 .guest-trigger {
-  padding: 0.25rem 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+}
+
+.selected-guests {
+  font-size: 14px;
+}
+
+.guest-type {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.guest-type:last-child {
+  margin-bottom: 0;
+}
+
+.guest-label {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.guest-sublabel {
+  font-size: 12px;
+  color: #666;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.counter button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.counter button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.counter span {
+  min-width: 20px;
+  text-align: center;
+}
+
+.price-section {
+  margin-bottom: 20px;
+}
+
+.price {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.per-night {
+  font-size: 16px;
+  color: #666;
+}
+
+.error-messages {
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #fff3f3;
+}
+
+.error-message {
+  color: #d93025;
+  font-size: 14px;
+  margin: 4px 0;
 }
 
 .price-breakdown {
-  background-color: #F9FAFB;
-  border-radius: 0.5rem;
-  padding: 1rem;
+  margin: 20px 0;
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
 }
 
-.price-breakdown > div:not(:last-child) {
-  margin-bottom: 0.75rem;
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #666;
+}
+
+.breakdown-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #ddd;
+  font-weight: 600;
+}
+
+.reserve-button {
+  width: 100%;
+  padding: 14px;
+  background: #ff385c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.reserve-button:hover {
+  background: #e31c5f;
+}
+
+.reserve-button:disabled {
+  background: #ddd;
+  cursor: not-allowed;
 }
 
 @keyframes slideIn {
