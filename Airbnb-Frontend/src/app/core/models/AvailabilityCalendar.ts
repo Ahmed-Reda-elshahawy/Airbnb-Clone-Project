@@ -1,6 +1,7 @@
 export interface AvailabilityCalendar {
-  startDate: Date | null;
-  endDate: Date | null;
-  isAvailable: boolean | undefined;
+  id?: string;
+  listingId?: string;
+  date: Date;
+  isAvailable: boolean | null;
   specialPrice?: number;
 }

@@ -196,8 +196,8 @@ orderSubmit() {
 
     const bookingData = {
       listingId: this.listings?.id,
-      checkIn: '2025-05-11',
-      checkOut: '2025-05-16',
+      startDate: '2025-05-11',
+      endDate: '2025-05-16',
       guests: 1,
       paymentStatus: this.paymentSuccess ? 'paid' : 'pending'
     };
