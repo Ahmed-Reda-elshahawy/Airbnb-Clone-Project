@@ -417,15 +417,13 @@ namespace YourNamespace.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim("FirstName", user.FirstName),
                 new Claim("LastName", user.LastName),
+                new Claim("roles", JsonSerializer.Serialize(userRoles.ToArray())),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
-            //foreach (var role in userRoles)
-            //{
-            //    authClaims.Add(new Claim(ClaimTypes.Role, role.Trim()));
-            //}
-
-            var rolesJson = JsonSerializer.Serialize(userRoles);
-            authClaims.Add(new Claim("roles", rolesJson, "application/json"));
+            foreach (var role in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var token = CreateToken(authClaims);
             var refreshToken32bitCode = GenerateRefreshToken32bitCode();
