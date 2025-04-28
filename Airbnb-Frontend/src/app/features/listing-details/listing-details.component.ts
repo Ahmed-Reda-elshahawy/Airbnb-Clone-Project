@@ -17,11 +17,8 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 import { ActivatedRoute } from '@angular/router';
-import { ReservationComponent } from '../reservation/reservation.component';
 import { ReservationCardComponent } from '../reservation-card/reservation-card.component';
-import { ReserveCardComponent } from '../reserve-card/reserve-card.component';
 
-// import { CalendarComponent } from "../calendar/calendar.component";
 
 interface RatingCategory {
   name: string;
@@ -38,7 +35,6 @@ interface RatingCategory {
     ButtonModule,
     ProgressBarModule,
     ReservationCardComponent,
-    ReserveCardComponent
 ],
   templateUrl: './listing-details.component.html',
   styleUrl: './listing-details.component.css',
