@@ -46,6 +46,7 @@ namespace WebApplication1.Repositories
                 var day = mapper.Map<AvailabilityCalendar>(dto);
                 day.ListingId = listingId;
                 day.Date = date;
+                day.IsAvailable = true; // Default to available
 
                 datesToAdd.Add(day);
             }
@@ -159,6 +160,15 @@ namespace WebApplication1.Repositories
         #endregion
 
         #region Get Availability
+        public async Task<bool> GetIfAvailabilityListingsAsync(Guid listingId, DateTime startDate, DateTime endDate)
+        {
+            int totalDays = (endDate - startDate).Days + 1;
+
+            int availableDays = await context.AvailabilityCalendars
+                .CountAsync(a => a.ListingId == listingId && a.Date >= startDate && a.Date <= endDate && (a.IsAvailable ?? true));
+
+            return availableDays == totalDays;
+        }
         public async Task<IEnumerable<AvailabilityCalendar>> GetAvailablilityListingsAsync(Guid listingId, DateTime startDate, DateTime endDate)
         {
             var availableListings = await context.AvailabilityCalendars

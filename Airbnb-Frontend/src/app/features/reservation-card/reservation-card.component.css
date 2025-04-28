@@ -17,13 +17,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Guest popup styles */
 .guest-popup {
+  margin-top: 0.5rem;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  animation: slideDown 0.2s ease-out;
   max-height: calc(100vh - 200px);
   overflow-y: auto;
 }
 
 /* Button hover and active states */
-button:not(:disabled):hover {
-  background-color: #f3f4f6;
+button:not([disabled]):hover {
+  border-color: #F43F5E;
+  color: #F43F5E;
 }
 
 button:not(:disabled):active {
@@ -34,7 +39,127 @@ button.rounded-full:not(:disabled):hover {
   border-color: #111;
 }
 
+button {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-color: #D1D5DB;
+}
+
+button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 /* Check availability button hover */
 button[class*="bg-rose-500"]:not(:disabled):hover {
   background-color: #e11d48;
+}
+
+button[class*="bg-rose-600"] {
+  width: 100%;
+  height: auto;
+}
+
+button[class*="bg-rose-600"][disabled] {
+  background-color: #F43F5E;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Reservation card styles */
+.reservation-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+}
+
+.booking-price {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.5rem;
+}
+
+.booking-price h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.booking-price h2 span {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #6B7280;
+}
+
+.booking-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #111827;
+}
+
+.booking-rating i {
+  color: #F43F5E;
+}
+
+.date-range-section {
+  margin-bottom: 1.5rem;
+}
+
+.guest-section {
+  border: 1px solid #D1D5DB;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 1.5rem;
+}
+
+.guest-section:hover {
+  border-color: #9CA3AF;
+}
+
+.guest-section:focus-within {
+  border-color: #F43F5E;
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.1);
+}
+
+.guest-trigger {
+  padding: 0.25rem 0;
+}
+
+.price-breakdown {
+  background-color: #F9FAFB;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.price-breakdown > div:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
