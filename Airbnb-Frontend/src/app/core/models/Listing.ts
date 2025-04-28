@@ -1,3 +1,6 @@
+
+import { CancellationPolicy } from "./CancellationPolicy";
+
 export interface Host {
   id: string;
   firstName: string;
@@ -8,14 +11,15 @@ export interface Host {
   isVerified: boolean;
 }
 
-export interface CancellationPolicy {
-  id: number;
-  name: string;
-  description: string;
-  fullRefundDays: number | null;
-  partialRefundDays: number | null;
-  partialRefundPercentage: number | null;
-}
+
+// export interface CancellationPolicy {
+//   id: number;
+//   name: string;
+//   description: string;
+//   fullRefundDays: number | null;
+//   partialRefundDays: number | null;
+//   partialRefundPercentage: number | null;
+// }
 
 // export interface Review {
 //   id: string;

@@ -254,7 +254,7 @@ export class AddListingComponent implements OnInit, OnDestroy {
               serviceFee: data.serviceFee,
               minNights: data.minNights,
               maxNights: data.maxNights,
-              cancellationPolicyId: data.cancellationPolicy?.id
+              cancellationPolicyId: data.cancellationPolicy?.Id
             });
 
             // Set the date range if availability data exists

@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { NgChartsModule } from 'ng2-charts';
+import { Component, OnInit ,NgModule} from '@angular/core';
+// import { ChartsModule } from 'ng2-charts';
+import { BaseChartDirective } from 'ng2-charts'; // Import the directive
 import { FormsModule } from '@angular/forms';
 import { AdminStatisticsService } from '../../core/services/admin-statistics.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -9,7 +10,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-analytics-dashboard',
   standalone: true,
-  imports: [NgChartsModule, FormsModule, FontAwesomeModule, CommonModule],
+  imports: [FormsModule, FontAwesomeModule, CommonModule, BaseChartDirective],
   templateUrl: './analytics-dashboard.component.html',
   styleUrls: ['./analytics-dashboard.component.css']
 })
