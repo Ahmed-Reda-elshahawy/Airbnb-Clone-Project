@@ -20,5 +20,6 @@ namespace WebApplication1.Interfaces
         #endregion
 
         Guid GetCurrentUserId();
+        bool IsAuthenticated();
     }
 }

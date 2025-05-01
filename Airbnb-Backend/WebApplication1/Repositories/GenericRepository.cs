@@ -3,6 +3,7 @@ using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NuGet.ProjectModel;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq.Expressions;
 using System.Security.Claims;
 using WebApplication1.Interfaces;
@@ -166,11 +167,9 @@ namespace WebApplication1.Repositories
         #region Get Methods
         public Guid GetCurrentUserId()
         {
-            //var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-            return Guid.Parse("15690543-6927-4375-9f41-628b80520190");
-            //return Guid.TryParse(userId, out var guid) ? guid : Guid.Empty;
+            var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Guid.TryParse(userId, out var guid) ? guid : Guid.Empty;
         }
-
         public bool IsAuthenticated()
         {
             return _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;

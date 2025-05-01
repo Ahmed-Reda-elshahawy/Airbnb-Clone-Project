@@ -96,15 +96,14 @@
             </div>
           </div>
           <p-divider></p-divider>
-          <div class="host-avatar">
-        <img [src]="listing.host.profilePictureUrl" alt="Host" />
+          <div class="host-avatar" *ngIf="listing.host">
+            <img [src]="listing.host.profilePictureUrl || 'assets/default-img.png'" alt="Host" />
             <div>
-          <h3>
-            Hosted by {{ listing.host.firstName }} {{ listing.host.lastName }}
-          </h3>
-              <!-- <p>Host since {{ listing.host.joinedDate }}</p> -->
+              <h3>
+                Hosted by {{ listing.host.firstName }} {{ listing.host.lastName }}
+              </h3>
               <p>Host since 22/2/2022</p>
-          <p>{{ listing.host.bio }}</p>
+              <p>{{ listing.host.bio }}</p>
             </div>
           </div>
           <!-- Highlights -->

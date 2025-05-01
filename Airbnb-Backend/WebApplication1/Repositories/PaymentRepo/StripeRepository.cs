@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using AutoMapper;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -172,6 +174,7 @@ namespace WebApplication1.Repositories.Payment
         #region Stripe Checkout Session
         public async Task<string> CreateStripeCheckoutSession(Guid bookingId, PaymentSessionRequestDTO request)
         {
+
             var currentUserId = GetCurrentUserId();
             var booking = await _bookingRepository.GetByIDAsync(bookingId, ["Listing"]) ?? throw new Exception("Booking not found");
 
@@ -222,12 +225,15 @@ namespace WebApplication1.Repositories.Payment
                         { "paymentMethodId", request.PaymentMethodId.ToString() },
                         { "paymentType", request.PaymentType.ToString() },
                         { "currency", user.CurrencyId.ToString() },
-                        { "bookingId", bookingId.ToString() }
+                        { "bookingId", bookingId.ToString() },
+                        { "user_id", currentUserId.ToString() }
                     }
                 },
                 Metadata = new Dictionary<string, string>
                 {
-                    { "bookingId", bookingId.ToString() }
+                    { "bookingId", bookingId.ToString() },
+                    { "user_id", currentUserId.ToString() }  // Use user ID instead of full token
+
                 }
             };
             var service = new SessionService(_stripeClient);

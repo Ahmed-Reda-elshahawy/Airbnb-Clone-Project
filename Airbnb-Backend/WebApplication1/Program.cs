@@ -21,6 +21,7 @@ using WebApplication1.Repositories.Payment;
 using WebApplication1.Interfaces.ChatBot;
 using WebApplication1.Repositories.ChatBot;
 using System.Net.Http.Headers;
+using NETCore.MailKit.Core;
 
 namespace WebApplication1
 {
@@ -30,10 +31,10 @@ namespace WebApplication1
         {
             var builder = WebApplication.CreateBuilder(args);
             // Configure Identity
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(/*options =>
             {
                 options.SignIn.RequireConfirmedAccount = true;
-            })
+            }*/)
             .AddEntityFrameworkStores<WebApplication1Context>()
             .AddDefaultTokenProviders()  // This is the key line
             .AddUserManager<UserManager<ApplicationUser>>()
@@ -77,8 +78,9 @@ namespace WebApplication1
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])
                     ),
-                    NameClaimType = ClaimTypes.Name,
+                    NameClaimType = ClaimTypes.NameIdentifier,
                     RoleClaimType = ClaimTypes.Role,
+
                 };
                 options.Events = new JwtBearerEvents
                 {
@@ -112,7 +114,6 @@ namespace WebApplication1
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
-            builder.Services.AddTransient<IEmailSender, EmailSender>();
             builder.Services.AddTransient<IEmailSender, EmailSender>();
             //builder.Services.AddScoped<ITokenService, TokenService>();
             //builder.Services.AddScoped<IAuthService, AuthService>();
@@ -149,11 +150,11 @@ namespace WebApplication1
 
 
             builder.Services.AddScoped<IWishListRepository, WishListRepository>();
-            #endregion
             builder.Services.AddHttpClient();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            #endregion
 
 
 
@@ -256,8 +257,8 @@ namespace WebApplication1
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseRouting();
 
+            app.UseRouting();
 
             #region Auth
             app.UseAuthentication();

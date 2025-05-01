@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Stripe;
@@ -19,6 +20,7 @@ namespace WebApplication1.Repositories.Payment
         private readonly IMapper _mapper;
         private readonly IAvailabilityCalendar _availabilityCalendarRepository;
         private readonly IStripe _stripeRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public PaymentRepository(AirbnbDBContext context, IMapper mapper, IAvailabilityCalendar availabilityCalendarRepository, IStripe stripeRepository, IHttpContextAccessor httpContextAccessor) : base(context, mapper, httpContextAccessor)
         {
@@ -26,6 +28,7 @@ namespace WebApplication1.Repositories.Payment
             _mapper = mapper;
             _availabilityCalendarRepository = availabilityCalendarRepository;
             _stripeRepository = stripeRepository;
+            _httpContextAccessor = httpContextAccessor;
         }
         #endregion
 
@@ -37,7 +40,7 @@ namespace WebApplication1.Repositories.Payment
             createPaymentDto.PaymentType = Enum.Parse<PaymentType>(source.intent.Metadata["paymentType"]);
             createPaymentDto.BookingId = Guid.Parse(source.intent.Metadata["bookingId"]);
             createPaymentDto.CurrencyId = int.Parse(source.intent.Metadata["currency"]);
-            createPaymentDto.UserId = GetCurrentUserId();
+            createPaymentDto.UserId = Guid.Parse(source.intent.Metadata["user_id"]);
             createPaymentDto.FailureMessage = source.charge?.FailureMessage ?? source.intent?.LastPaymentError?.Message;
             createPaymentDto.PaymentMethodId = int.Parse(source.intent.Metadata["paymentMethodId"]);
 
@@ -68,7 +71,13 @@ namespace WebApplication1.Repositories.Payment
             var session = await _stripeRepository.GetSession(sessionId);
             if (session == null || string.IsNullOrEmpty(session.PaymentIntentId))
                 throw new Exception("Invalid session or missing PaymentIntent ID.");
-
+            if (session.Metadata.TryGetValue("auth_token", out string authToken))
+            {
+                // Create a new HttpContext for this request
+                var httpContext = new DefaultHttpContext();
+                httpContext.Request.Headers.Append("Authorization", $"Bearer {authToken}");
+                _httpContextAccessor.HttpContext = httpContext;
+            }
             var paymentIntent = await _stripeRepository.GetPaymentIntent(session.PaymentIntentId) ?? throw new Exception("PaymentIntent not found.");
 
             var charge = await _stripeRepository.GetCharge(paymentIntent.LatestChargeId);
